@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-11-15T16:15:03.391Z",
+        "reason": "Claude: portrait/sprite <img> src is set from JS (art.ts) before their hidden containers are shown"
+      }
+    ]
+  }
+}

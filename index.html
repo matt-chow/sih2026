@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NGIDIA: The 60-Second Disaster</title>
+  <meta name="description" content="A 60-second corporate espionage comedy. Find the spy. Lose everything." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%2376b900'/><rect x='4' y='4' width='8' height='8' fill='%23111'/><rect x='6' y='6' width='4' height='4' fill='%2376b900'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+</head>
+<body data-state="START">
+  <canvas id="scene"></canvas>
+
+  <!-- HUD -->
+  <div id="hud" hidden>
+    <div id="objective"></div>
+    <div id="timer">0.0s</div>
+    <div id="hint"><kbd>WASD</kbd> move <kbd>E</kbd> interact <span id="mute">🔊 M</span></div>
+  </div>
+  <div id="stock" hidden>
+    <div class="stk-head"><b>NGDA</b><span>NASDAQ · LIVE</span></div>
+    <div id="stkPrice">$1000.00</div>
+    <div id="stkChg">▲ 0.00%</div>
+    <canvas id="stkSpark" width="200" height="44"></canvas>
+  </div>
+  <div id="prompt" hidden><kbd>E</kbd><span></span></div>
+  <div id="floaters"></div>
+  <div id="toasts" aria-live="polite"></div>
+
+  <!-- Dialogue -->
+  <div id="dialogue" hidden>
+    <img id="portL" class="portrait" alt="" />
+    <img id="portR" class="portrait" alt="" />
+    <div class="dlg-box">
+      <div id="dlgName" class="dlg-name"></div>
+      <p id="dlgText" aria-live="polite"></p>
+      <div class="dlg-next">E ▶</div>
+    </div>
+  </div>
+
+  <!-- Battle -->
+  <div id="wipe" hidden></div>
+  <div id="battle" hidden>
+    <div class="bt-stage">
+      <div class="bt-card foe"><div><b>ALICE</b><span>Lv.99</span></div><div class="hp"><i></i></div></div>
+      <div class="bt-foe"><div class="plat"></div><img id="btAlice" alt="Alice" /></div>
+      <div class="bt-player"><div class="plat"></div><img id="btHensen" alt="Hensen" /></div>
+      <div class="bt-card me"><div><b>HENSEN</b><span>Lv.62</span></div><div class="hp"><i></i></div><small>HP 61/62</small></div>
+      <div id="btReveal" hidden>
+        <img id="btRevealImg" alt="Alice, revealed" />
+        <h2 data-text="ALICE WAS THE ULTIMATE CORPORATE SPY ALL ALONG!">ALICE WAS THE ULTIMATE CORPORATE SPY ALL ALONG!</h2>
+      </div>
+    </div>
+    <div id="btBox" class="bt-box"><p id="btText"></p></div>
+    <div id="choices" role="group" aria-label="What matters most to you?" hidden>
+      <button data-k="ngidia" class="ch ngidia">NGIDIA</button>
+      <button data-k="family" class="ch family">Loving Family</button>
+      <button data-k="america" class="ch america">America</button>
+      <button data-k="alice" class="ch alice">Alice <span aria-hidden="true">❤</span></button>
+    </div>
+    <div id="btLive" class="sr-only" aria-live="assertive"></div>
+    <div id="btFx"></div>
+  </div>
+
+  <!-- Crash -->
+  <div id="crash" hidden>
+    <div class="crash-head">
+      <span class="badge">BREAKING</span>
+      <div><b>NGDA</b> <span id="crashPrice">$970.00</span> <span id="crashPct">▼ 3.00%</span></div>
+    </div>
+    <canvas id="crashChart"></canvas>
+    <div class="stamp">NEGATIVE TERRITORY</div>
+    <div class="ticker"><span>NGIDIA SHARES NOW COST MONEY TO OWN · ANALYSTS: "WE HAVE NEVER SEEN A STOCK DO THIS" · CEO SEEN HUGGING A SERVER RACK · TRADING HALTED · NGIDIA SHARES NOW COST MONEY TO OWN · ANALYSTS: "WE HAVE NEVER SEEN A STOCK DO THIS" ·</span></div>
+  </div>
+
+  <!-- Ending -->
+  <div id="ending" hidden>
+    <div class="end-card">
+      <img id="endPortrait" alt="Hensen, defeated" />
+      <div>
+        <h1>HENSEN BLACKED OUT!</h1>
+        <p>NGIDIA is now worth less than a used leather jacket.</p>
+        <dl id="endStats"></dl>
+        <button id="replay">↻ REPLAY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div id="title">
+    <div class="title-card">
+      <div class="logo"><i></i>NGIDIA</div>
+      <h1>THE 60-SECOND<br />DISASTER</h1>
+      <p>You are <b>Hensen Juang</b>, CEO of NGIDIA.<br />Someone in this office is leaking company secrets.</p>
+      <button id="start">PRESS ENTER</button>
+      <div class="controls"><kbd>WASD</kbd> move &nbsp; <kbd>E</kbd> interact / advance &nbsp; <kbd>M</kbd> mute</div>
+    </div>
+  </div>
+  <div id="loading">LOADING…</div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
