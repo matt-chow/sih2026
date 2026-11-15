@@ -29,7 +29,7 @@ implement it in `src/main.ts`, and leave every existing scene untouched.
 | `src/logic.ts` | Story FSM (`State`, `NEXT`), collision, path following. DOM-free, tested. | Adding a story state (also update `tests/logic.test.ts`, which counts states). |
 | `src/art.ts` | Character assets: `EMOTIONS` (portraits with talk/blink frames), `ANIMS` (pixel-art sprite clips, painted by `paintSprite`), procedural SVG portrait fallback. | New character, emotion or pose. |
 | `src/ui.ts` | Dialogue box, toasts, floaters, stock ticker. `NAMES` = name tag per character. | New character. |
-| `src/battle.ts` | Pokémon-style duel primitives (`startDuel`, `attack`, `faint`, `spyReveal`), stock crash, ending card. The duel *script* is `BATTLE` in `src/scenes/office/lines.ts`. | New battle effects. |
+| `src/battle.ts` | Pokémon-style duel primitives (`startDuel`, `chooseAlice` dodging buttons, `attack`, `faint`, `spyReveal`), stock crash, ending card. The duel *script* is `BATTLE` in `src/scenes/boardroom/lines.ts`; the dodging-button quips are `QUIPS`. | New battle effects. |
 | `index.html` | Title screen, battle buttons, crash ticker, ending text. | Those screens' text. |
 | `src/art/` | Artist PNG/WebP drop folder; its README is the asset manifest. Also `njidion_logo.png`. | New art. |
 
