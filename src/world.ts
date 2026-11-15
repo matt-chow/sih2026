@@ -133,7 +133,7 @@ export class World {
     this.box(M.carpet, 11.6, 0.02, 6.2, 0, 0, -0.4);
     this.box(M.rug, 4.4, 0.02, 3.2, -9.2, 0, 4.6);
     // base slab so the diorama has thickness
-    this.box(M.trim, 24.4, 0.6, 16.4, 0, -0.6, 0);
+    this.box(M.trim, 24.4, 0.6, 16.4, 0, -0.62, 0); // top 2cm under the floor plane, or they z-fight
 
     // back wall (z=-8) with doorway at x 8..10, left wall (x=-12)
     const H = 3.2;
