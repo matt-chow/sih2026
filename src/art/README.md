@@ -4,13 +4,13 @@ Drop files here; they are picked up automatically at build time (no code changes
 `.webp` wins over `.png` if both exist. Anything missing falls back to the procedural SVG art in `src/art.ts`.
 
 **Status:**
-- **Portraits:** all 14 expressions are painted raster art, each with `_talk1` and `_blink` frames (42 WebP files, 853×1280, transparent).
+- **Portraits:** all 16 expressions are painted raster art, each with `_talk1` and `_blink` frames, except `cfo_hype` whose eyes are already shut (47 WebP files, 853×1280, transparent).
 - **Sprites:** still the procedural SVG fallback.
 
 **Provenance of the portraits:** generated in Nov 2026 with OpenAI image generation (gpt-image, via the Codex CLI's built-in image tool on the project owner's ChatGPT account). They are not traced or converted from the SVG art.
-- **Bases:** each one was generated on flat #00FF00. Hensen's other expressions and every Kevin and Rachel image used an earlier generation as a style and identity reference. Alice's master was generated from a reference photo supplied by the project owner (face likeness; hair, outfit and pose were specified in the prompt). Her other three expressions used that master. The photo is not shipped.
+- **Bases:** each one was generated on flat #00FF00. Hensen's other expressions and every Kevin, Jessica and Brad image used an earlier generation as a style and identity reference. Alice's master was generated from a reference photo supplied by the project owner (face likeness; hair, outfit and pose were specified in the prompt). Her other three expressions used that master. The photo is not shipped.
 - **Talk/blink frames:** each is an edit of its base that changes only the mouth or the eyes. The edit is aligned to the base, colour-matched, and only a feathered patch around the mouth or eyes is pasted back, so the rest of the frame is pixel-identical.
-- **Finishing:** chroma-keyed to alpha with despill, framed (Rachel is zoomed 1.12× so her head size matches), and exported as WebP.
+- **Finishing:** chroma-keyed to alpha with despill, framed (Jessica is zoomed 1.12× so her head size matches), and exported as WebP.
 - **Licence:** OpenAI's Terms of Use assign ownership of outputs to the user. No stock or third-party art is used.
 - **Likeness:** Hensen is a parody likeness of a real person. Keep it clearly comedic. Alice is a stylized likeness of the person in the owner-supplied reference photo; make sure that person has consented before publishing.
 
@@ -48,10 +48,10 @@ Missing variants fall back to the base frame (the portrait still bobs while talk
 | hensen | `defeated` | ending card | tears, slumped shoulders, wobbly mouth |
 | kevin | `nervous` | caught at desk | forced smile, sweat, clutching a folder to his chest |
 | kevin | `panic` | bolts | eyes wide, mouth open, glasses askew |
-| cfo | `hype` | defends the $800M wire | eyes closed in bliss, huge grin, finger guns (procedural SVG until painted) |
-| cfo | `panic` | gets fired | eyes wide, screaming, sweat |
-| rachel | `neutral` | office small talk | polite, slightly tired smile |
-| rachel | `friendly` | warmer follow-up | wink, soft smile |
+| cfo | `hype` | defends the $800M wire | eyes closed in bliss, huge grin, finger guns, takeaway coffee (no `_blink`) |
+| cfo | `panic` | gets fired, portfolio down 40% | eyes wide, screaming, sweat, hands in his quiff |
+| jessica | `neutral` | office small talk | polite, slightly tired smile |
+| jessica | `friendly` | warmer follow-up | wink, soft smile |
 | alice | `smile` | pleasant first line | calm, composed, polite closed-mouth smile, hand on lapel |
 | alice | `wink` | warm/intrigued | wink, soft smile, head tilt, hand near chin |
 | alice | `dramatic` | challenges Hensen | confident smirk, pointing at the viewer, hair in motion |
@@ -68,7 +68,7 @@ Frame order must match `ANIMS` in `src/art.ts`:
 | kevin | 1152×192 (9) | idle ×2 · run ×4 · stumble ×1 · panic ×2 |
 | cfo | 1280×192 (10) | idle ×2 · walk ×4 · talk ×2 · panic ×2 |
 | alice | 1280×192 (10) | idle ×2 · walk ×4 · talk ×2 · dramatic ×1 · villain ×1 |
-| rachel | 1024×192 (8) | idle ×2 · walk ×4 · talk ×2 |
+| jessica | 1024×192 (8) | idle ×2 · walk ×4 · talk ×2 |
 
 Simplified shapes and flat 2-tone shading, the same outfit, hair and palette as the portraits. They must read at ~100 px tall.
 Idle = a subtle breathing pair; walk and run = contact, pass, contact, pass; talk = a hand gesture with open and closed mouth.
@@ -80,12 +80,12 @@ Palette: jacket `#141417` / sheen `#4a4a55`, tee `#25252b`, skin `#e2b48a`.
 
 **Kevin (`kevin`)**: the office spy. Ordinary, slightly suspicious. Slim. Muted blue-gray shirt `#8fa3ba`, slate tie `#46566b`, gray trousers `#3d4452`, employee badge on a lanyard, round glasses, neat brown hair, a manila folder.
 
-**Brad (`cfo`)**: the CFO, an unhinged crypto bro. Innocent, just financially illiterate in a confident way. Green quarter-zip `#2d5a3c`, gold chain `#f5c542`, frosted blond tips `#e6c34a`, dark joggers.
+**Brad (`cfo`)**: the CFO, a stereotypical finance bro. Innocent, just financially illiterate in a confident way. Brown hair with an exaggerated quiff `#6b4226`, white button-down `#f7f7f4` with rolled sleeves, navy quilted vest `#1f2d4d`, slim dark trousers `#25272e`, white sneakers, black smartwatch, one white earbud.
 
 **Alice (`alice`)**: love interest and the true final boss. A Chinese woman in her early thirties, stylized likeness of the owner-supplied reference photo. Luxury-corporate, elegant, mysterious. Polished shoulder-length dark-brown lob `#3a2219` with a side part. Tailored ivory double-breasted blazer `#ece4d6` with gold buttons, black silk blouse buttoned to the collarbone, black trousers, gold drop earrings and a gold watch. Office-appropriate, nothing revealing; her appeal is posture, gaze and poise.
 She never changes outfit; the reveal is only expression, pose and lighting (purple/magenta under-light and rim, deep shadows, arms crossed).
 
-**Rachel (`rachel`)**: quiet engineering coworker, a background NPC (inherits the earlier Alice art). Rose blazer `#b9506f`, ivory blouse `#f6efe7`, charcoal trousers `#2e2e3c`, long auburn hair `#b8442f`, green eyes.
+**Jessica (`jessica`)**: quiet engineering coworker, a background NPC (inherits the earlier Alice art). Rose blazer `#b9506f`, ivory blouse `#f6efe7`, charcoal trousers `#2e2e3c`, long auburn hair `#b8442f`, green eyes.
 
 ## Example generation prompt (adapt per row)
 

@@ -26,7 +26,7 @@ export function showPrompt(label: string | null, x = 0, y = 0, alt?: string) {
 // ------------------------------------------------------------ dialogue
 /** One dialogue line. `emo` must be one of that character's EMOTIONS in art.ts (type-checked); `pose` is the speaker's sprite clip (default 'talk'). */
 export type Line = { [C in CharId]: { who: C; emo: Emotion<C>; text: string; pose?: string } }[CharId];
-const NAMES: Record<CharId, string> = { hensen: 'HENSEN JUANG', kevin: 'KEVIN · CTO', cfo: 'BRAD · CFO', alice: 'ALICE', rachel: 'RACHEL · ENGINEERING' };
+const NAMES: Record<CharId, string> = { hensen: 'HENSEN JUANG', kevin: 'KEVIN · CTO', cfo: 'BRAD · CFO', alice: 'ALICE', jessica: 'JESSICA · ENGINEERING' };
 const SHAKY = new Set(['shocked', 'panic', 'villain']);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let dialogueOpen = false;

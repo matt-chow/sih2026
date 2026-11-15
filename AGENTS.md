@@ -44,7 +44,7 @@ Edit `src/scenes/<id>/lines.ts`. Each line is `{ who, emo, text }`, plus an opti
 | `kevin` | `nervous` `panic` | `idle` `panic` `stumble` |
 | `cfo` | `hype` `panic` | `idle` `talk` `panic` |
 | `alice` | `smile` `wink` `dramatic` `villain` | `idle` `talk` `dramatic` `villain` |
-| `rachel` | `neutral` `friendly` | `idle` `talk` |
+| `jessica` | `neutral` `friendly` | `idle` `talk` |
 
 Add or remove lines freely; arrays can be any length. Toast strings are HTML (`<b>` title, `<span>` subtitle).
 
