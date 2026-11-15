@@ -26,8 +26,9 @@
 .phone-notification-heading i { background: var(--green); color: #101518; border-radius: 8px; padding: 4px 7px; font-size: 22px; font-style: normal; }
 .phone-notification-heading small { font-size: 11px; letter-spacing: 0.06em; }
 .phone-notification-heading span { margin-left: auto; font-size: 11px; }
-#phone-notification strong { font-size: 19px; margin-bottom: 8px; }
-#phone-notification b { font-size: 17px; font-weight: 500; line-height: 1.45; color: var(--green-hi); }
+#phone-notification strong, .phone-mail-sender { font-size: 19px; font-weight: 700; }
+#phone-notification strong { margin-bottom: 8px; }
+#phone-notification b, .phone-mail-subject { font-size: 17px; font-weight: 500; line-height: 1.45; color: var(--green-hi); }
 #phone-notification > span:not(.phone-notification-heading) { color: #c5cec8; font-size: 16px; line-height: 1.5; margin-top: 12px; }
 #phone-notification em { color: var(--green-hi); font-style: normal; font-weight: 700; margin-top: 18px; }
 .phone-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center; padding-bottom: 8px; }
