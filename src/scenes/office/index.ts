@@ -17,6 +17,7 @@ const BOARD_DOOR: P2 = { x: -1, z: -8 };
 const DESK_X = { A: -3.6, B: 0, C: 3.6 };
 
 let jessica: Actor;
+const hologram = new THREE.Group();
 const crew = {} as Record<'kevin' | 'cfo' | 'alice', Actor>;
 let briefed = false, searched = 0;
 
@@ -54,6 +55,9 @@ function build(room: Room) {
   room.shell(BOUNDS, [{ wall: 'back', at: DOOR.x }, { wall: 'back', at: BOARD_DOOR.x }]);
   room.box(M.carpet, 11.6, 0.02, 6.2, 0, 0, -0.4);
   room.box(M.rug, 4.4, 0.02, 3.2, -9.2, 0, 4.6);
+  // big logo carpet in front of the desks: green trim, then the logo laid flat (under the actors' shadows at y 0.03)
+  room.box(M.neon, 7.8, 0.01, 5.3, 1, 0, 5.2);
+  room.sign(7.5, 5, logo, 1, 0.02, 5.2).rotation.x = -Math.PI / 2;
   // windows on the left wall
   for (const z of [-5, 0.5, 5]) {
     room.box(M.trim, 0.06, 1.7, 3.2, -11.98, 0.85, z);
@@ -88,9 +92,9 @@ function build(room: Room) {
   }, -11.97, 1.6, -2.3, Math.PI / 2);
 
   // searchable desk row (facing +z) and the back-to-back row behind it
-  for (const [i, x] of [-3.6, 0, 3.6].entries()) {
+  for (const x of [-3.6, 0, 3.6]) {
     room.desk(x, 0.2, 1);
-    room.desk(x, -1.1, -1, i !== 1);
+    room.desk(x, -1.1, -1);
   }
   // every screen shows the logo, except Alice's
   for (const x of [DESK_X.A, DESK_X.B]) room.sign(0.72, 0.48, logo, x, 1.29, -0.055);
@@ -159,11 +163,21 @@ function build(room: Room) {
   room.plant(-5.8, -7.3);
   room.plant(5.6, 7.2);
 
+  // the brand is everywhere. EVERYWHERE.
+  const logoAt = (w: number, x: number, y: number, z: number, ry = 0) => room.sign(w, w / 1.5, logo, x, y, z, ry);
+  for (const [w, x, y] of [[1.4, -10.1, 1.9], [1.1, -7, 2.2], [1.0, -2.6, 1.9], [1.5, 5.4, 1.8], [0.9, 7.4, 2.2]]) logoAt(w, x, y, -7.97);
+  for (const x of [1.5, 2.5, 3.5]) logoAt(0.66, x, 2.65, -7.97); // above the server racks
+  for (const [w, z] of [[1.2, -7.3], [1.1, 2.75], [1.2, 7.3]]) logoAt(w, -11.97, 1.7, z, Math.PI / 2);
+  room.sign(3.9, 2.6, logo, -9.2, 0.025, 4.6).rotation.x = -Math.PI / 2; // lounge rug
+  // a spinning logo hologram over the desks (two faces so it never shows its back)
+  hologram.add(room.sign(2.4, 1.6, logo, 0, 0, 0), room.sign(2.4, 1.6, logo, 0, 0, 0, Math.PI));
+  hologram.position.set(0, 4.1, -0.4);
+  room.add(hologram);
+
   crew.kevin = room.actor('kevin', DESK_X.A + 1.5, 1.4, 2.0);
   crew.cfo = room.actor('cfo', DESK_X.B + 1.5, 1.4);
   crew.alice = room.actor('alice', DESK_X.C + 1.5, 1.4);
-  jessica = room.actor('jessica', 10.2, -2.4);
-  jessica.face(-1);
+  jessica = room.actor('jessica', 0, -2.75); // the middle back-row desk
   setupBattle(sheets);
 }
 
@@ -210,6 +224,7 @@ export default {
     const atDesks = game.state === 'START' || game.state === 'EXPLORATION';
     for (const a of Object.values(crew)) a.root.visible = atDesks;
     crew.kevin.lift = atDesks ? Math.abs(Math.sin(performance.now() / 160)) * 0.06 : 0; // nervous gamer bounce
+    hologram.rotation.y = performance.now() / 1400;
     M.led.color.setHSL(0.25, 1, 0.45 + 0.15 * Math.sin(performance.now() / 1000 * 9));
     if (game.state === 'EXPLORATION' && !briefed && !game.busy) { briefed = true; void briefing(); }
   },
