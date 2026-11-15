@@ -44,10 +44,11 @@ export function battleTransition(): Promise<void> {
 }
 
 // ------------------------------------------------------------ battle screen
+let sayId = 0;
 async function say(text: string, hold = 900) {
-  const el = $('btText');
+  const el = $('btText'), id = ++sayId;
   el.textContent = '';
-  for (let i = 1; i <= text.length; i++) {
+  for (let i = 1; i <= text.length && id === sayId; i++) { // a newer line takes over the box
     el.textContent = text.slice(0, i);
     if (i % 2 === 0) sfx.blip();
     await wait(18);
@@ -57,6 +58,7 @@ async function say(text: string, hold = 900) {
 
 // battle stand-ins; foes are mirrored to face left
 let frames: Record<'hensen' | 'shocked' | 'alice' | 'dramatic' | 'villain', string>;
+const decodedFrames: HTMLImageElement[] = [];
 let revealAnim: PortraitAnim;
 let allSheets: Sheets;
 const hp = { me: 100, foe: 100 };
@@ -70,6 +72,8 @@ export function setupBattle(sheets: Sheets) {
     dramatic: frameURL(sheets.alice, 'dramatic', 0, true),
     villain: frameURL(sheets.alice, 'villain', 0, true),
   };
+  // decode now: swapping to an undecoded src keeps showing the old character for a frame
+  for (const src of Object.values(frames)) { const i = new Image(); i.src = src; void i.decode().then(() => decodedFrames.push(i)); }
   revealAnim = new PortraitAnim($<HTMLImageElement>('btRevealImg'));
 }
 
@@ -324,6 +328,19 @@ export function chooseWhatMatters(): Promise<void> {
   });
 }
 
+/** Hensen's turn: the dodging choices, then love wins (for about a second). */
+export async function chooseAlice() {
+  await chooseWhatMatters();
+  $('choices').classList.add('chosen');
+  sfx.love();
+  hearts(...centerOf('btAlice'), 22, $('btFx'));
+  $('btHensen').classList.add('hop');
+  await say('HENSEN chose ALICE! ❤ True love is super effective!', 650);
+  $('choices').hidden = true;
+  $('choices').classList.remove('chosen');
+  $('btHensen').classList.remove('hop');
+}
+
 export async function crash() {
   const root = $('crash'), c = $<HTMLCanvasElement>('crashChart'), g = c.getContext('2d')!;
   root.hidden = false;
@@ -395,7 +412,7 @@ export function showEnding(seconds: number, verdict: string, won: boolean, onRep
   $('endStats').innerHTML = `
     <dt>GPU architecture leaked</dt><dd${won ? '>0%' : ' class="neg">100%'}</dd>
     <dt>CEO IQ</dt><dd>${won ? '4 (personal best)' : '3'}</dd>
-    <dt>Company valuation</dt><dd${won ? '>$5 trillion' : ' class="neg">$0'}</dd>
+    <dt>Company valuation</dt><dd${won ? '>$5 trillion' : ' class="neg">' + formatPrice(FINAL_PRICE)}</dd>
     <dt>Disaster duration</dt><dd>${seconds.toFixed(1)}s</dd>`;
   const btn = $<HTMLButtonElement>('replay');
   btn.onclick = () => { sfx.select(); onReplay(); };

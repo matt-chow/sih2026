@@ -1,11 +1,11 @@
 # Character asset manifest
 
 Drop files here; they are picked up automatically at build time (no code changes).
-`.webp` wins over `.png` if both exist. Anything missing falls back to the procedural SVG art in `src/art.ts`.
+`.webp` wins over `.png` if both exist. Anything missing falls back to the procedural art in `src/art.ts` (SVG portraits, pixel-art sprites).
 
 **Status:**
 - **Portraits:** all 16 expressions are painted raster art, each with `_talk1` and `_blink` frames, except `cfo_hype` whose eyes are already shut (47 WebP files, 853×1280, transparent).
-- **Sprites:** still the procedural SVG fallback.
+- **Sprites:** pixel art painted in code at boot (`paintSprite` in `src/art.ts`): 32×48 frames, front/back/side facings, auto 1px outline, shown with nearest filtering. No files needed.
 
 **Provenance of the portraits:** generated in Nov 2026 with OpenAI image generation (gpt-image, via the Codex CLI's built-in image tool on the project owner's ChatGPT account). They are not traced or converted from the SVG art.
 - **Bases:** each one was generated on flat #00FF00. Hensen's other expressions and every Kevin, Jessica and Brad image used an earlier generation as a style and identity reference. Alice's master was generated from a reference photo supplied by the project owner (face likeness; hair, outfit and pose were specified in the prompt). Her other three expressions used that master. The photo is not shipped.
@@ -57,21 +57,23 @@ Missing variants fall back to the base frame (the portrait still bobs while talk
 | alice | `dramatic` | challenges Hensen | confident smirk, pointing at the viewer, hair in motion |
 | alice | `villain` | betrayal reveal | **same outfit**. Narrowed eyes, sinister smirk, shadow over the upper face, purple/magenta under-light and rim light |
 
-## Sprites (in-game): `sprite_<id>.png`
+## Sprites (in-game): `sprite_<id>.png` (optional override)
 
-One horizontal strip, frames side by side, each **128×192** (2:3), character facing **right**, feet on the bottom edge at the same x in every frame. The game mirrors frames for left-facing.
-Frame order must match `ANIMS` in `src/art.ts`:
+The built-in sprites are pixel art painted by `paintSprite` in `src/art.ts`. An artist strip replaces them:
+one horizontal strip, frames side by side, any frame size (32×48 native), feet on the bottom edge.
+Side frames face **right**; the game mirrors them for left. Shown with nearest filtering, so draw at 1:1 pixels.
+Frame order must match `ANIMS` in `src/art.ts` (every character starts with the same 18 movement frames):
 
-| id | Strip (frame count) | Frames in order |
-|----|---------------------|-----------------|
-| hensen | 1280×192 (10) | idle ×2 · walk ×4 · talk ×2 · shocked ×2 |
-| kevin | 1152×192 (9) | idle ×2 · run ×4 · stumble ×1 · panic ×2 |
-| cfo | 1280×192 (10) | idle ×2 · walk ×4 · talk ×2 · panic ×2 |
-| alice | 1280×192 (10) | idle ×2 · walk ×4 · talk ×2 · dramatic ×1 · villain ×1 |
-| jessica | 1024×192 (8) | idle ×2 · walk ×4 · talk ×2 |
+| id | Frames in order |
+|----|-----------------|
+| all | idle ×2 · walk ×4 · idle_back ×2 · walk_back ×4 · idle_side ×2 · walk_side ×4 (Kevin: `run` instead of `walk`) |
+| hensen | … then talk ×2 · shocked ×2 (22) |
+| kevin | … then stumble ×1 · panic ×2 (21) |
+| cfo | … then talk ×2 · panic ×2 (22) |
+| alice | … then talk ×2 · dramatic ×1 · villain ×1 (22) |
+| jessica | … then talk ×2 (20) |
 
-Simplified shapes and flat 2-tone shading, the same outfit, hair and palette as the portraits. They must read at ~100 px tall.
-Idle = a subtle breathing pair; walk and run = contact, pass, contact, pass; talk = a hand gesture with open and closed mouth.
+Talk and story poses face the camera. Idle = a subtle breathing pair; walk and run = contact, pass, contact, pass.
 
 ## Character sheets
 

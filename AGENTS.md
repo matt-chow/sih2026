@@ -27,7 +27,7 @@ implement it in `src/main.ts`, and leave every existing scene untouched.
 | `src/main.ts` | Engine: input, movement, collisions, prompts, door travel with fade, run reset. | New engine capability only. |
 | `src/game.ts` | Shared state scenes import: `game` (story `state`, `go()`, `busy`, `elapsed`), `player`, `world`, `above()`, `talk()` (dialogue that also poses the sprites). | Rarely. |
 | `src/logic.ts` | Story FSM (`State`, `NEXT`), collision, path following. DOM-free, tested. | Adding a story state (also update `tests/logic.test.ts`, which counts states). |
-| `src/art.ts` | Character assets: `EMOTIONS` (portraits with talk/blink frames), `ANIMS` (sprite clips), procedural SVG fallback. | New character, emotion or pose. |
+| `src/art.ts` | Character assets: `EMOTIONS` (portraits with talk/blink frames), `ANIMS` (pixel-art sprite clips, painted by `paintSprite`), procedural SVG portrait fallback. | New character, emotion or pose. |
 | `src/ui.ts` | Dialogue box, toasts, floaters, stock ticker. `NAMES` = name tag per character. | New character. |
 | `src/battle.ts` | Pokémon-style duel primitives (`startDuel`, `attack`, `faint`, `spyReveal`), stock crash, ending card. The duel *script* is `BATTLE` in `src/scenes/office/lines.ts`. | New battle effects. |
 | `index.html` | Title screen, battle buttons, crash ticker, ending text. | Those screens' text. |
@@ -82,8 +82,8 @@ Only characters that have art can appear (see next recipe).
 
 ### Add a new character
 1. `src/art.ts`: add the id to `CharId` and `EMOTIONS`, a palette in `PAL`, one `FACES` entry per emotion
-   (mix existing eyes/brows/mouths), `ANIMS` clips (at least `idle` and its `MOVE` clip) and a `MOVE` entry.
-   Optional bespoke hair/clothes branches in `portraitSVG`/`spriteSVG`.
+   (mix existing eyes/brows/mouths), `ANIMS` clips (start with `...base(<move clip>)` for idle/move in every facing) and a `MOVE` entry.
+   Optional bespoke hair/clothes branches in `portraitSVG`/`paintSprite`.
 2. `src/ui.ts`: add a name tag to `NAMES`.
 3. Optional: drop artist PNG/WebP files in `src/art/` (names and frame order in `src/art/README.md`).
 

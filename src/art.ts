@@ -1,7 +1,7 @@
 // Character art pipeline. One design per character, two tiers:
 //  - dialogue portraits: big busts per expression, each with 2 talk frames and a blink frame;
-//  - in-game sprites: a strip of small frames grouped into named animations (ANIMS).
-// Everything is procedural SVG unless an artist file with the matching name exists in
+//  - in-game sprites: a strip of pixel-art frames grouped into named animations (ANIMS).
+// Portraits are procedural SVG and sprites are painted pixel art, unless an artist file with the matching name exists in
 // src/art/ (see src/art/README.md) — then that wins.
 
 export type CharId = 'hensen' | 'kevin' | 'cfo' | 'alice' | 'jessica';
@@ -31,7 +31,7 @@ const OUT = '#141417';
 interface Pal { skin: string; hair: string; hairHi: string; top: string; topHi: string; inner: string; leg: string; shoe: string; iris: string }
 const PAL: Record<CharId, Pal> = {
   // black leather jacket, dark tee, salt-and-pepper hair
-  hensen: { skin: '#e2b48a', hair: '#2a2a2f', hairHi: '#8d8d98', top: '#141417', topHi: '#4a4a55', inner: '#25252b', leg: '#1c1c21', shoe: '#0b0b0b', iris: '#3b2a1e' },
+  hensen: { skin: '#e2b48a', hair: '#9c9ca6', hairHi: '#ededf2', top: '#141417', topHi: '#4a4a55', inner: '#25252b', leg: '#1c1c21', shoe: '#0b0b0b', iris: '#3b2a1e' },
   // muted blue-gray office shirt, slate tie
   kevin: { skin: '#f0c9a4', hair: '#6a4a2e', hairHi: '#8f6a44', top: '#8fa3ba', topHi: '#b9c7d6', inner: '#46566b', leg: '#3d4452', shoe: '#262626', iris: '#4a3a22' },
   // crypto-bro CFO: green quarter-zip, gold chain, frosted tips
@@ -199,132 +199,183 @@ export function portraitFrames<C extends CharId>(id: C, emotion: Emotion<C>): Po
 export const portraitSrc = <C extends CharId>(id: C, emotion: Emotion<C>) => portraitFrames(id, emotion).base;
 
 // ---------------------------------------------------------------- sprites
-// viewBox 64x96, facing right, feet at y≈90, about 6 heads tall.
-const FW = 128, FH = 192;
+// Pixel art painted at native resolution (FW x FH per frame) and shown with nearest filtering.
+// Key light from the upper left: left edges get a highlight, right edges a shade, then a 1px outline ring.
+const FW = 32, FH = 48;
 
+/** Sprite facing. 'side' faces right; the game mirrors it for left. */
+export type Dir = 'front' | 'back' | 'side';
 type Arms = 'swing' | 'talk' | 'up' | 'flail' | 'point' | 'cross';
-interface Pose { leg?: number; arm?: number; bob?: number; lean?: number; arms?: Arms; mouth?: number; eyes?: 'open' | 'wide' | 'closed' | 'narrow' }
+interface Pose { dir?: Dir; step?: number; bob?: number; lean?: number; arms?: Arms; mouth?: boolean; eyes?: 'open' | 'wide' | 'closed' | 'narrow' }
 
-const cycle = (amp: number, lean = 0): Pose[] => [1, 0, -1, 0].map((s, i) => ({ leg: s * amp, arm: s * amp, bob: i % 2 ? -1 : 0, lean }));
-const SHOCK: Pose = { arms: 'up', eyes: 'wide', mouth: 2 };
+const shadeHex = (hex: string, k: number) => {
+  const n = parseInt(hex.slice(1), 16);
+  const f = (v: number) => Math.round(k < 1 ? v * k : v + (255 - v) * (k - 1));
+  return '#' + [16, 8, 0].map(s => f((n >> s) & 255).toString(16).padStart(2, '0')).join('');
+};
+const dk = (h: string) => shadeHex(h, 0.72), lt = (h: string) => shadeHex(h, 1.3);
+const GOLD = '#d4a537', MOUTH = '#3a0d12', BLUSH = '#ff8aa6', GREEN = '#76b900', RED_EYE = '#ff2d47';
+
+// contact, pass, contact, pass; the body rises a pixel on the pass frames
+const walk = (dir: Dir, stride: number): Pose[] => [1, 0, -1, 0].map((s, i) => ({ dir, step: s * stride, bob: i % 2 ? -1 : 0 }));
+/** idle + move clips for every facing: `idle`, `idle_back`, `idle_side`, `walk`, `walk_back`, `walk_side`. */
+const base = (move: string, stride = 1, fps = 8) => Object.fromEntries((['front', 'back', 'side'] as Dir[]).flatMap(dir => {
+  const k = dir === 'front' ? '' : '_' + dir;
+  return [[`idle${k}`, { fps: 2, poses: [{ dir }, { dir, bob: 1 }] }], [move + k, { fps, poses: walk(dir, stride) }]];
+}));
+const TALK = { fps: 5, poses: [{ arms: 'talk', mouth: true }, { arms: 'talk', bob: 1 }] as Pose[] };
+const SHOCK: Pose = { arms: 'up', eyes: 'wide', mouth: true };
 
 /** Sprite animations in strip order — an artist strip must use this exact frame order. */
 const ANIMS: Record<CharId, Record<string, { fps: number; poses: Pose[] }>> = {
-  hensen: {
-    idle: { fps: 2, poses: [{}, { bob: 0.6 }] },
-    walk: { fps: 8, poses: cycle(1) },
-    talk: { fps: 5, poses: [{ arms: 'talk', mouth: 1 }, { arms: 'talk', bob: 0.4 }] },
-    shocked: { fps: 8, poses: [SHOCK, { ...SHOCK, bob: -1.2 }] },
-  },
+  hensen: { ...base('walk'), talk: TALK, shocked: { fps: 8, poses: [SHOCK, { ...SHOCK, bob: -1 }] } },
   kevin: {
-    idle: { fps: 3, poses: [{}, { bob: 0.6, eyes: 'closed' }] },
-    run: { fps: 10, poses: cycle(1.6, 9) },
-    stumble: { fps: 1, poses: [{ arms: 'flail', leg: 1.3, eyes: 'wide', mouth: 2, lean: -12 }] },
-    panic: { fps: 8, poses: [SHOCK, { ...SHOCK, mouth: 1, bob: -1.2 }] },
+    ...base('run', 2, 10),
+    stumble: { fps: 1, poses: [{ arms: 'flail', eyes: 'wide', mouth: true, lean: -2 }] },
+    panic: { fps: 8, poses: [SHOCK, { ...SHOCK, mouth: false, bob: -1 }] },
   },
-  cfo: {
-    idle: { fps: 2, poses: [{}, { bob: 0.6 }] },
-    walk: { fps: 8, poses: cycle(1) },
-    talk: { fps: 5, poses: [{ arms: 'talk', mouth: 1 }, { arms: 'talk', bob: 0.4 }] },
-    panic: { fps: 8, poses: [SHOCK, { ...SHOCK, mouth: 1, bob: -1.2 }] },
-  },
+  cfo: { ...base('walk'), talk: TALK, panic: { fps: 8, poses: [SHOCK, { ...SHOCK, mouth: false, bob: -1 }] } },
   alice: {
-    idle: { fps: 2, poses: [{}, { bob: 0.6 }] },
-    walk: { fps: 8, poses: cycle(0.8) },
-    talk: { fps: 5, poses: [{ arms: 'talk', mouth: 1 }, { arms: 'talk', bob: 0.4 }] },
-    dramatic: { fps: 1, poses: [{ arms: 'point', leg: 0.9, mouth: 1, lean: 4 }] },
-    villain: { fps: 1, poses: [{ arms: 'cross', eyes: 'narrow', leg: 0.5 }] },
+    ...base('walk'), talk: TALK,
+    dramatic: { fps: 1, poses: [{ arms: 'point', mouth: true }] },
+    villain: { fps: 1, poses: [{ arms: 'cross', eyes: 'narrow' }] },
   },
-  jessica: {
-    idle: { fps: 2, poses: [{}, { bob: 0.6 }] },
-    walk: { fps: 8, poses: cycle(0.8) },
-    talk: { fps: 5, poses: [{ arms: 'talk', mouth: 1 }, { arms: 'talk', bob: 0.4 }] },
-  },
+  jessica: { ...base('walk'), talk: TALK },
 };
 const MOVE: Record<CharId, string> = { hensen: 'walk', kevin: 'run', cfo: 'walk', alice: 'walk', jessica: 'walk' };
 
-function limb(pts: number[], color: string, w = 4) {
-  const d = pts.reduce((acc, v, i) => acc + (i % 2 ? ',' : i ? ' L' : 'M') + v, '');
-  const st = 'fill="none" stroke-linecap="round" stroke-linejoin="round"';
-  return `<path d="${d}" stroke="${OUT}" stroke-width="${w + 2.4}" ${st}/><path d="${d}" stroke="${color}" stroke-width="${w}" ${st}/>`;
-}
-
-// hand positions per arm pose: [back arm points, front arm points], from the shoulder
-function armPts(a: Arms, swing: number): [number[], number[]] {
-  switch (a) {
-    case 'swing': return [[28, 27, 28 + swing * 5, 49], [37, 27, 37 - swing * 5, 49]];
-    case 'talk': return [[28, 27, 27, 49], [37, 27, 42, 38, 48, 33]];
-    case 'up': return [[28, 27, 22, 18, 25, 7], [37, 27, 44, 18, 41, 6]];
-    case 'flail': return [[28, 27, 18, 22, 12, 14], [37, 27, 47, 31, 54, 24]];
-    case 'point': return [[28, 27, 25, 39, 31, 48], [37, 27, 47, 24, 57, 20]];
-    case 'cross': return [[28, 27, 26, 37, 39, 37], [37, 27, 40, 36, 27, 35]];
-  }
-}
-
-function spriteSVG(id: CharId, p: Pose): string {
+function paintSprite(g: CanvasRenderingContext2D, ox: number, id: CharId, p: Pose) {
   const c = PAL[id];
-  const leg = p.leg ?? 0, arms = p.arms ?? 'swing', eyes = p.eyes ?? 'open', m = p.mouth ?? 0;
-  const [back, front] = armPts(arms, p.arm ?? 0);
+  const dir = p.dir ?? 'front', s = p.step ?? 0, b = p.bob ?? 0, lean = p.lean ?? 0;
+  const arms = p.arms ?? 'swing', eyes = p.eyes ?? 'open';
+  const R = (x: number, y: number, w: number, h: number, col: string) => { g.fillStyle = col; g.fillRect(ox + x, y, w, h); };
+  const U = (x: number, y: number, w: number, h: number, col: string) => R(x + lean, y + b, w, h, col); // upper body: bobs and leans
   const sleeve = id === 'cfo' ? c.inner : c.top; // Brad's vest is sleeveless
-  const hand = (pts: number[]) => `<circle cx="${pts.at(-2)}" cy="${pts.at(-1)}" r="1.9" fill="${c.skin}" stroke="${OUT}" stroke-width="1"/>`;
-  const shoe = (x: number) => `<ellipse cx="${x + 1.6}" cy="89.6" rx="4.2" ry="2.1" fill="${c.shoe}" stroke="${OUT}" stroke-width="1"/>`;
-  const s: string[] = [`<g transform="rotate(${p.lean ?? 0} 32 90)">`];
+  const long = id === 'jessica' ? 26 : id === 'alice' ? 18 : 0; // bottom row of the hair, 0 = short
 
-  if (id === 'alice') s.push(`<path d="M27,9 C22,14 22,22 24,26 L31,25.5 C29,21 29,16 30,12Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.2"/>`);
-  if (id === 'jessica') s.push(`<path d="M27,9 C22,16 22,30 25,38 L32,37 C29,30 29,20 30,12Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.2"/>`);
-  // legs, back then front
-  s.push(limb([30, 51, 30 - leg * 6, 88], c.leg, 4.6), shoe(30 - leg * 6));
-  s.push(limb([34, 51, 34 + leg * 6, 88], c.leg, 4.6), shoe(34 + leg * 6));
-  s.push(`<g transform="translate(0,${p.bob ?? 0})">`);
-  if (arms !== 'cross') s.push(limb(back, sleeve, 3.6), hand(back));
+  if (dir === 'side') {
+    // ---------------------------------------------------------- side view, facing right
+    const leg = (x: number, d: number, col: string) => {
+      R(x + Math.round(d / 2), 30, 3, 8, col);
+      R(x + d, 38, 3, 6, col);
+      R(x + d, 44, 5, 2, c.shoe);
+    };
+    leg(14, -s * 2, dk(c.leg));
+    U(14, 19, 3, 5, dk(sleeve)); U(14 + s, 24, 3, 5, dk(sleeve)); U(14 + s, 29, 3, 2, dk(c.skin)); // far arm
+    leg(15, s * 2, c.leg);
+    U(12, 18, 8, 14, c.top); U(12, 18, 1, 14, lt(c.top)); U(19, 18, 1, 14, dk(c.top));
+    if (id === 'hensen') { U(18, 18, 2, 6, c.inner); U(17, 18, 1, 6, c.topHi); U(18, 21, 1, 1, GREEN); }
+    if (id === 'kevin') { U(18, 18, 2, 1, c.topHi); U(19, 19, 1, 6, c.inner); U(17, 22, 2, 3, '#fff'); U(12, 31, 8, 1, dk(c.leg)); }
+    if (id === 'cfo') { U(18, 18, 2, 3, c.inner); U(13, 23, 6, 1, c.topHi); U(13, 27, 6, 1, c.topHi); }
+    if (long) { U(18, 18, 2, 6, c.inner); U(17, 18, 1, 6, c.topHi); }
+    if (id === 'alice') U(18, 25, 1, 1, GOLD);
+    // head
+    U(15, 17, 4, 1, dk(c.skin));
+    U(12, 5, 9, 12, c.skin); U(11, 6, 11, 10, c.skin); U(22, 11, 1, 2, c.skin); // nose
+    U(15, 10, 2, 3, dk(c.skin)); // ear
+    U(11, 4, 10, 4, c.hair); U(12, 3, 8, 1, c.hair); U(11, 8, 4, 5, c.hair); U(15, 8, 1, 2, c.hair);
+    if (long) { U(10, 7, 5, long - 7, c.hair); U(11, 8, 1, long - 9, dk(c.hair)); U(19, 8, 2, 1, c.hair); U(12, 4, 4, 1, c.hairHi); }
+    if (id === 'hensen') for (const [x, y] of [[13, 4], [16, 3], [18, 5], [12, 7], [14, 6], [12, 10]]) U(x, y, 1, 1, c.hairHi);
+    if (id === 'cfo') { U(13, 1, 8, 3, c.hair); U(18, 3, 4, 2, c.hair); U(15, 1, 4, 1, c.hairHi); U(16, 11, 1, 1, '#fff'); }
+    if (id === 'kevin') { U(18, 8, 3, 1, c.hair); U(13, 4, 4, 1, c.hairHi); }
+    if (id === 'alice') U(15, 13, 1, 1, GOLD);
+    // face
+    if (eyes === 'closed') U(18, 11, 2, 1, OUT);
+    else if (eyes === 'narrow') { U(18, 10, 2, 1, OUT); U(19, 11, 1, 1, RED_EYE); }
+    else if (eyes === 'wide') { U(18, 9, 2, 3, '#fff'); U(19, 10, 1, 1, OUT); }
+    else { U(19, 10, 1, 1, OUT); U(19, 11, 1, 1, dk(c.iris)); }
+    U(18, eyes === 'wide' ? 7 : 8, 2, 1, dk(c.hair));
+    if (id === 'kevin') { U(17, 9, 4, 1, OUT); U(17, 12, 4, 1, OUT); U(16, 10, 1, 1, OUT); }
+    if (long) U(18, 13, 1, 1, BLUSH);
+    U(19, 14, 2, p.mouth ? 2 : 1, p.mouth ? MOUTH : dk(c.skin));
+    // near arm, swinging against the near leg
+    U(15, 19, 3, 5, sleeve); U(15 - s, 24, 3, 5, id === 'cfo' ? c.skin : sleeve); U(15 - s, 29, 3, 2, c.skin);
+    if (id === 'cfo') U(15 - s, 28, 3, 1, '#1a1a20'); // smartwatch
+    if (id === 'kevin') { U(16 - s, 26, 5, 6, '#e8c26a'); U(16 - s, 26, 5, 1, '#c9a24a'); } // the folder of secrets
+    return;
+  }
 
-  // torso + outfit
-  s.push(`<path d="M25,25 Q32,22.5 40,25 L41,53 L24.5,53Z" fill="${c.top}" stroke="${OUT}" stroke-width="1.2" stroke-linejoin="round"/>`);
-  s.push(`<path d="M25,25 L28,24.4 L28,53 L24.5,53Z" fill="#000" opacity=".22"/>`); // far-side shade
-  if (id === 'hensen') s.push(`<path d="M30,24 L33.5,40 L37,24Z" fill="${c.inner}"/><path d="M29.5,24.5 L33,39 M37.5,24.5 L34,39" stroke="${c.topHi}" stroke-width="1.2"/>
-    <path d="M38.5,28 L39.2,46" stroke="${c.topHi}" stroke-width="1" opacity=".8"/><circle cx="37.6" cy="31" r=".9" fill="#76b900"/>`);
-  if (id === 'kevin') s.push(`<path d="M32,24.5 L34.5,24.5 L35,39 L33.2,41 L31.5,39Z" fill="${c.inner}" stroke="${OUT}" stroke-width=".6"/>
-    <rect x="36.5" y="31" width="3.4" height="4.4" fill="#fff" stroke="${OUT}" stroke-width=".5"/><rect x="37.1" y="31.6" width="1.4" height="1.4" fill="#76b900"/><path d="M25,50.5 H41" stroke="${OUT}" stroke-width="1.4"/>`);
-  if (id === 'cfo') s.push(`<path d="M29,24 L33.5,29 L38,24Z" fill="${c.inner}" stroke="${OUT}" stroke-width=".6"/><path d="M33.5,29 V53" stroke="${OUT}" stroke-width=".7"/>
-    <path d="M25.5,33 H40.5 M25,40 H41 M24.8,47 H41" stroke="${c.topHi}" stroke-width=".9"/>`);
-  if (id === 'alice' || id === 'jessica') s.push(`<path d="M30,24 L33.5,37 L37,24Z" fill="${c.inner}"/><path d="M29.5,24.5 L33,36 M37.5,24.5 L34,36" stroke="${c.topHi}" stroke-width="1.1"/><path d="M25,45 Q33,46.5 41,45" stroke="${OUT}" stroke-width=".8" fill="none"/>`);
+  // ------------------------------------------------------------ front and back
+  const front = dir === 'front';
+  if (long) U(9, 7, 14, long - 7, dk(c.hair)); // hair falling behind the shoulders
+  for (const [x, up] of [[11, s > 0], [17, s < 0]] as const) {
+    const lift = up ? Math.abs(s) + 1 : 0;
+    R(x, 28, 4, 16 - lift, c.leg); R(x + 3, 28, 1, 16 - lift, dk(c.leg));
+    R(x, 44 - lift, 4, 2, c.shoe);
+  }
+  U(10, 18, 12, 14, c.top); U(10, 18, 1, 14, lt(c.top)); U(21, 18, 1, 14, dk(c.top));
+  if (front) {
+    if (id === 'hensen') { U(14, 18, 4, 8, c.inner); U(13, 18, 1, 7, c.topHi); U(18, 18, 1, 7, c.topHi); U(19, 21, 1, 1, GREEN); U(11, 20, 1, 6, c.topHi); }
+    if (id === 'kevin') { U(13, 18, 6, 1, c.topHi); U(15, 19, 2, 7, c.inner); U(15, 26, 1, 1, c.inner); U(18, 22, 2, 3, '#fff'); U(18, 22, 1, 1, GREEN); U(10, 31, 12, 1, dk(c.leg)); }
+    if (id === 'cfo') { U(14, 18, 4, 3, c.inner); U(15, 21, 2, 11, c.inner); U(11, 23, 4, 1, c.topHi); U(17, 23, 4, 1, c.topHi); U(11, 27, 4, 1, c.topHi); U(17, 27, 4, 1, c.topHi); }
+    if (long) { U(14, 18, 4, 6, c.inner); U(13, 18, 1, 6, c.topHi); U(18, 18, 1, 6, c.topHi); }
+    if (id === 'alice') for (const [x, y] of [[13, 25], [18, 25], [13, 28], [18, 28]]) U(x, y, 1, 1, GOLD);
+  } else {
+    U(13, 18, 6, 1, c.topHi); U(15, 19, 1, 12, dk(c.top));
+    if (id === 'hensen') U(11, 20, 1, 7, c.topHi);
+  }
+
+  // arms
+  const arm = (x: number, dy: number) => {
+    U(x, 19, 2, 10 + dy, sleeve); U(x === 8 ? 9 : 22, 19, 1, 10 + dy, dk(sleeve));
+    if (id === 'cfo') U(x, 25, 2, 4 + dy, c.skin); // rolled sleeves
+    U(x, 29 + dy, 2, 2, c.skin);
+    if (id === 'cfo' && x === 8) U(x, 27 + dy, 2, 1, '#1a1a20'); // smartwatch
+  };
+  if (arms === 'swing') { arm(8, front ? s : -s); arm(22, front ? -s : s); }
+  if (arms === 'talk' || arms === 'point') arm(8, 0);
+  if (arms === 'talk') { U(22, 19, 2, 6, sleeve); U(24, 19, 2, 6, sleeve); U(24, 17, 2, 2, c.skin); }
+  if (arms === 'up' || arms === 'flail') { U(8, 18, 2, 2, sleeve); U(7, 9, 2, 10, sleeve); U(7, 7, 2, 2, c.skin); }
+  if (arms === 'up') { U(22, 18, 2, 2, sleeve); U(23, 9, 2, 10, sleeve); U(23, 7, 2, 2, c.skin); }
+  if (arms === 'flail' || arms === 'point') { U(22, 19, 7, 2, sleeve); U(29, 19, 2, 2, c.skin); }
+  if (arms === 'cross') { arm(8, -4); arm(22, -4); U(9, 23, 14, 3, sleeve); U(9, 25, 14, 1, dk(sleeve)); U(10, 23, 2, 2, c.skin); U(20, 24, 2, 2, c.skin); }
+  if (id === 'kevin' && arms === 'swing' && front) { U(5, 26 + s, 4, 6, '#e8c26a'); U(5, 26 + s, 4, 1, '#c9a24a'); }
 
   // head
-  s.push(`<rect x="31" y="18" width="4.4" height="7" fill="${c.skin}" stroke="${OUT}" stroke-width="1"/>`);
-  s.push(`<ellipse cx="33" cy="14" rx="6.2" ry="7.4" fill="${c.skin}" stroke="${OUT}" stroke-width="1.2"/>`);
-  s.push(`<ellipse cx="29.6" cy="14.6" rx="1.2" ry="1.8" fill="${c.skin}" stroke="${OUT}" stroke-width=".8"/>`);
-  if (id === 'hensen') s.push(`<path d="M26.6,13 C26,6 31,5.4 34,5.7 C38.2,6 40.6,8.2 39.6,11 C37,9 33,9.2 30.5,10.2 C28.6,11 27.6,12 26.6,13Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.1"/>
-    <path d="M29,8.2 C32,6.6 36,6.8 38.6,8.4" stroke="${c.hairHi}" stroke-width=".8" fill="none"/>`);
-  else if (id === 'cfo') s.push(`<path d="M26.6,13.4 C25.8,6.6 30,4.6 34,4.4 C37,3.2 41.4,3.6 41.2,7 C40.6,9 39.2,9.8 37.8,10 C34,9.6 30.4,10.8 26.6,13.4Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.1"/>
-    <path d="M31,6 C34,4.8 37.6,4.4 40,5.6" stroke="${c.hairHi}" stroke-width=".8" fill="none"/><circle cx="29.6" cy="15.2" r=".7" fill="#fff" stroke="${OUT}" stroke-width=".4"/>`);
-  else if (id === 'kevin') s.push(`<path d="M26.8,13 C26,6.4 32,5.4 35,5.8 C39,6.4 40.2,9 39.6,11 L35.6,9.4 C32.4,10 29.2,11 26.8,13Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.1"/>`);
-  else s.push(`<path d="M26.4,15 C25.4,6 31,5 34,5.2 C39,5.5 41,9 40.2,13 C38.4,10.4 36.4,9.6 34.4,10 C31,10.6 28.4,12.4 26.4,15Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.1"/>
-    <path d="M29.5,7.5 C32,6.4 35,6.4 37.5,7.4" stroke="${c.hairHi}" stroke-width=".8" fill="none"/>`);
+  U(14, 17, 4, 1, dk(c.skin));
+  U(11, 5, 10, 12, c.skin); U(10, 6, 12, 10, c.skin); U(21, 7, 1, 8, dk(c.skin));
+  U(9, 10, 1, 3, c.skin); U(22, 10, 1, 3, dk(c.skin));
+  // hair: crown, then each character's cut
+  U(11, 3, 10, 2, c.hair); U(10, 4, 12, 4, c.hair);
+  if (!front) { U(10, 4, 12, 12, c.hair); U(11, 16, 10, 1, c.hair); U(19, 6, 2, 9, dk(c.hair)); }
+  if (id === 'hensen') {
+    U(10, 8, 1, 3, c.hair); U(21, 8, 1, 3, c.hair);
+    for (const [x, y] of [[12, 4], [14, 3], [16, 5], [18, 4], [20, 6], [11, 6], [15, 9], [13, 11]]) if (!front || y < 7) U(x, y, 1, 1, c.hairHi); // salt and pepper
+  }
+  if (id === 'kevin') { U(10, 8, 5, 1, c.hair); U(10, 9, 1, 2, c.hair); U(21, 8, 1, 2, c.hair); U(12, 4, 5, 1, c.hairHi); }
+  if (id === 'cfo') { U(12, 1, 9, 3, c.hair); U(11, 2, 10, 2, c.hair); U(14, 1, 4, 1, c.hairHi); U(10, 8, 1, 2, c.hair); U(21, 8, 1, 2, c.hair); U(22, 11, 1, 1, '#fff'); }
+  if (long) {
+    U(9, 6, 2, long - 6, c.hair); U(21, 6, 2, long - 6, c.hair); U(12, 4, 4, 1, c.hairHi);
+    if (front) { U(11, 8, 4, 1, c.hair); U(11, 9, 2, 1, c.hair); } else U(9, 6, 14, long - 9, c.hair);
+  }
+  if (id === 'alice' && front) { U(9, 13, 1, 1, GOLD); U(22, 13, 1, 1, GOLD); }
+  if (!front) return;
 
-  // face (3/4 view, looking right)
-  const ex = [34.6, 38];
-  if (eyes === 'open') s.push(ex.map(x => `<ellipse cx="${x}" cy="13.6" rx=".7" ry="1" fill="${OUT}"/>`).join(''));
-  if (eyes === 'wide') s.push(ex.map(x => `<circle cx="${x}" cy="13.4" r="1.3" fill="#fff" stroke="${OUT}" stroke-width=".6"/><circle cx="${x}" cy="13.4" r=".45" fill="${OUT}"/>`).join(''));
-  if (eyes === 'closed') s.push(ex.map(x => `<path d="M${x - 0.9},13.8 h1.8" stroke="${OUT}" stroke-width=".7"/>`).join(''));
-  if (eyes === 'narrow') s.push(ex.map(x => `<path d="M${x - 1},13.2 L${x + 1},14" stroke="${OUT}" stroke-width=".9"/><circle cx="${x + 0.2}" cy="14.2" r=".45" fill="#ff2d47"/>`).join(''));
-  const browY = eyes === 'wide' ? 10.4 : 11.4;
-  s.push(ex.map(x => (eyes === 'narrow' ? `<path d="M${x - 1.2},11.4 L${x + 1},12.4"` : `<path d="M${x - 1},${browY} h2"`) + ` stroke="${c.hair}" stroke-width=".8"/>`).join(''));
-  if (id === 'kevin') s.push(`<circle cx="34.6" cy="13.6" r="1.8" fill="none" stroke="${OUT}" stroke-width=".6"/><circle cx="38.2" cy="13.6" r="1.6" fill="none" stroke="${OUT}" stroke-width=".6"/><path d="M36.4,13.4 h0.2" stroke="${OUT}" stroke-width=".6"/>`);
-  s.push(`<path d="M38.8,14.6 l1,2.2 l-1.2,.3" fill="none" stroke="${OUT}" stroke-width=".5" opacity=".7"/>`);
-  if (id === 'alice' || id === 'jessica') s.push(`<ellipse cx="35" cy="16.6" rx="1.2" ry=".6" fill="#ff7a9a" opacity=".55"/>`);
-  s.push(m ? `<ellipse cx="36.6" cy="18.4" rx="${0.6 + m * 0.35}" ry="${0.4 + m * 0.5}" fill="#3a0d12"/>` : `<path d="M35.4,18.3 Q36.6,18.9 37.8,18.2" stroke="${OUT}" stroke-width=".6" fill="none" stroke-linecap="round"/>`);
+  // face
+  for (const [x, w] of [[13, 12], [18, 18]]) { // eye column, and the left edge of its 2px features
+    if (eyes === 'closed') U(w, 11, 2, 1, OUT);
+    else if (eyes === 'narrow') { U(w, 10, 2, 1, OUT); U(x, 11, 1, 1, RED_EYE); }
+    else if (eyes === 'wide') { U(w, 9, 2, 3, '#fff'); U(x, 10, 1, 1, OUT); }
+    else { U(x, 10, 1, 1, OUT); U(x, 11, 1, 1, dk(c.iris)); }
+    U(w, eyes === 'wide' ? 7 : eyes === 'narrow' ? 9 : 8, 2, 1, dk(c.hair));
+    if (long) U(x === 13 ? 12 : 19, 13, 1, 1, BLUSH);
+  }
+  if (id === 'kevin') { U(11, 9, 4, 1, OUT); U(11, 12, 4, 1, OUT); U(17, 9, 4, 1, OUT); U(17, 12, 4, 1, OUT); U(15, 10, 2, 1, OUT); } // round glasses
+  U(15, 14, 2, p.mouth ? 2 : 1, p.mouth ? MOUTH : dk(c.skin));
+}
 
-  // front arm (and the crossed back arm), Kevin's folder of secrets while running
-  if (arms === 'cross') s.push(limb(back, sleeve, 3.6), hand(back));
-  s.push(limb(front, sleeve, 3.6), hand(front));
-  if (id === 'cfo') { const [hx, hy, ex, ey] = front.slice(-4); s.push(`<circle cx="${hx + (ex - hx) * 0.8}" cy="${hy + (ey - hy) * 0.8}" r="1.1" fill="#1a1a20" stroke="#6a7ab0" stroke-width=".4"/>`); } // smartwatch
-  if (id === 'kevin' && arms === 'swing') s.push(`<rect x="${front[2] - 1}" y="${front[3] - 6}" width="7" height="9" rx=".6" fill="#e8c26a" stroke="${OUT}" stroke-width="1" transform="rotate(8 ${front[2] + 2} ${front[3] - 2})"/>`);
-  s.push('</g></g>');
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${FW}" height="${FH}" viewBox="0 0 64 96">${s.join('')}</svg>`;
+/** Rings every opaque pixel with a 1px outline (4-neighbour), the hallmark of the sprite style. */
+function outline(g: CanvasRenderingContext2D, w: number, h: number) {
+  const img = g.getImageData(0, 0, w, h), d = img.data;
+  const a = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h && d[(y * w + x) * 4 + 3] > 0;
+  const ring: number[] = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!a(x, y) && (a(x - 1, y) || a(x + 1, y) || a(x, y - 1) || a(x, y + 1))) ring.push(y * w + x);
+  for (const i of ring) d.set([0x14, 0x14, 0x17, 255], i * 4);
+  g.putImageData(img, 0, 0);
 }
 
 export interface Clip { start: number; count: number; fps: number }
-/** A character's sprite strip (FW x FH frames, facing right) and where each animation lives in it. */
+/** A character's sprite strip (frames side by side) and where each animation lives in it. */
 export interface Sheet { id: CharId; canvas: HTMLCanvasElement; frames: number; clips: Record<string, Clip>; move: string }
 
 export async function loadSpriteSheet(id: CharId): Promise<Sheet> {
@@ -335,27 +386,29 @@ export async function loadSpriteSheet(id: CharId): Promise<Sheet> {
     poses.push(...a.poses);
   }
   const c = document.createElement('canvas');
-  c.width = FW * poses.length; c.height = FH;
-  const g = c.getContext('2d')!;
+  const g = c.getContext('2d', { willReadFrequently: true })!;
   const custom = override(`sprite_${id}`);
   if (custom) {
     const img = await loadImage(custom);
-    const sw = img.width / poses.length;
-    for (let i = 0; i < poses.length; i++) g.drawImage(img, sw * i, 0, sw, img.height, i * FW, 0, FW, FH);
+    c.width = img.width; c.height = img.height;
+    g.drawImage(img, 0, 0);
   } else {
-    const imgs = await Promise.all(poses.map(p => loadImage(svgUrl(spriteSVG(id, p)))));
-    imgs.forEach((img, i) => g.drawImage(img, i * FW, 0, FW, FH));
+    c.width = FW * poses.length; c.height = FH;
+    poses.forEach((p, i) => paintSprite(g, i * FW, id, p));
+    outline(g, c.width, c.height);
   }
   return { id, canvas: c, frames: poses.length, clips, move: MOVE[id] };
 }
 
-/** One frame of a sheet as an <img>-ready URL (used by the battle screen). */
+/** One frame of a sheet as an <img>-ready URL (used by the battle screen), upscaled so it stays crisp. */
 export function frameURL(sheet: Sheet, clip: string, i = 0, flip = false): string {
+  const fw = sheet.canvas.width / sheet.frames, fh = sheet.canvas.height, k = Math.max(1, Math.round(192 / fh));
   const c = document.createElement('canvas');
-  c.width = FW; c.height = FH;
+  c.width = fw * k; c.height = fh * k;
   const g = c.getContext('2d')!;
-  if (flip) { g.translate(FW, 0); g.scale(-1, 1); }
-  g.drawImage(sheet.canvas, (sheet.clips[clip].start + i) * FW, 0, FW, FH, 0, 0, FW, FH);
+  g.imageSmoothingEnabled = false;
+  if (flip) { g.translate(c.width, 0); g.scale(-1, 1); }
+  g.drawImage(sheet.canvas, (sheet.clips[clip].start + i) * fw, 0, fw, fh, 0, 0, c.width, c.height);
   return c.toDataURL();
 }
 

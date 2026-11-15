@@ -1,6 +1,6 @@
 // Renderer, isometric camera and billboard actors. Room contents live in src/scenes/.
 import * as THREE from 'three';
-import type { Sheet } from './art';
+import type { Dir, Sheet } from './art';
 import type { Box, P2 } from './logic';
 
 const CAM_OFFSET = new THREE.Vector3(20, 17, 20);
@@ -83,7 +83,7 @@ export class World {
   }
 }
 
-/** A 2D sprite standee: cylindrical billboard over a sprite strip with named clips (see ANIMS in art.ts). */
+/** A 2D pixel-art standee: cylindrical billboard over a sprite strip with named clips (see ANIMS in art.ts). */
 export class Actor {
   readonly root = new THREE.Group();
   readonly pos: P2;
@@ -96,11 +96,15 @@ export class Actor {
   private clip = '';
   private clipT = 0;
   private facing = 1;
+  private dir: Dir = 'front';
   private last = { x: 0, z: 0 };
 
   constructor(readonly sheet: Sheet, height = 2.1) {
     this.tex = new THREE.CanvasTexture(sheet.canvas);
     this.tex.colorSpace = THREE.SRGBColorSpace;
+    // crisp pixels; without mipmaps neighbouring frames never blend into each other
+    this.tex.magFilter = this.tex.minFilter = THREE.NearestFilter;
+    this.tex.generateMipmaps = false;
     this.tex.repeat.set(1 / sheet.frames, 1);
     const w = height * (128 / 192);
     const geo = new THREE.PlaneGeometry(w, height);
@@ -122,7 +126,8 @@ export class Actor {
     this.last = { x, z };
   }
 
-  face(dir: 1 | -1) { this.facing = dir; }
+  /** Turn to screen-left or screen-right. */
+  face(dir: 1 | -1) { this.facing = dir; this.dir = 'side'; }
 
   /** Call once per frame after moving `pos`; picks clip, frame and facing from the motion. */
   animate(dt: number) {
@@ -130,11 +135,17 @@ export class Actor {
     this.last = { x: this.pos.x, z: this.pos.z };
     const speed = Math.hypot(vx, vz), moving = speed > 0.3;
     if (moving) {
-      const sx = vx * SCREEN_RIGHT.x + vz * SCREEN_RIGHT.z;
-      if (Math.abs(sx) > 0.2) this.facing = sx > 0 ? 1 : -1;
+      const sx = vx * SCREEN_RIGHT.x + vz * SCREEN_RIGHT.z, sy = vx * SCREEN_UP.x + vz * SCREEN_UP.z;
+      if (Math.abs(sx) >= Math.abs(sy)) this.face(sx > 0 ? 1 : -1); // diagonals read best side-on
+      else { this.dir = sy > 0 ? 'back' : 'front'; this.facing = 1; }
     }
-    const name = moving ? this.sheet.move : this.anim && this.anim in this.sheet.clips ? this.anim : 'idle';
-    if (name !== this.clip) { this.clip = name; this.clipT = 0; }
+    const base = moving ? this.sheet.move : this.anim && this.anim in this.sheet.clips ? this.anim : 'idle';
+    const turned = this.dir === 'front' ? base : `${base}_${this.dir}`; // only idle and move clips come in every facing
+    const name = turned in this.sheet.clips ? turned : base;
+    if (name !== this.clip) {
+      if (name.split('_')[0] !== this.clip.split('_')[0]) this.clipT = 0; // turning mid-stride keeps the step phase
+      this.clip = name;
+    }
     const c = this.sheet.clips[name];
     this.clipT += dt * (moving ? 4 + speed * 1.4 : c.fps); // stride cadence follows speed
     this.tex.offset.x = (c.start + Math.floor(this.clipT) % c.count) / this.sheet.frames;

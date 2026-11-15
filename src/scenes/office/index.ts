@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import logo from '../../art/njidion_logo.png';
 import { sfx } from '../../audio';
-import { attack, battlePop, battleSay, crash, faint, setupBattle, showEnding, spyReveal, startDuel } from '../../battle';
+import { attack, battlePop, battleSay, chooseAlice, crash, faint, setupBattle, showEnding, spyReveal, startDuel } from '../../battle';
 import { above, game, player, sheets, talk } from '../../game';
 import type { Box, P2 } from '../../logic';
 import { M, type Room, type Scene, type Thing } from '../../scene';
@@ -57,6 +57,7 @@ async function interrogate(who: L.Suspect) {
   $('hud').hidden = true;
   await startDuel(who, B.name, B.level);
   await battleSay(B.appear, 900);
+  if (who !== 'alice') await chooseAlice(); // wrong suspect: Hensen's turn is the dodging buttons, love wins
   for (const m of B.moves) await attack(m.by, m.text, m.dmg, m.fx);
   await faint(B.faint);
   if (who === 'alice') {

@@ -44,8 +44,9 @@ export class PortraitAnim {
   show(who: CharId, emo: string) {
     this.f = portraitFrames(who, emo as never);
     this.mouth = 0;
-    this.draw();
     clearTimeout(this.blinkTimer);
+    this.blinking = false; // a blink cut short by the swap would otherwise stick
+    this.draw();
     const blink = () => {
       this.blinking = true;
       this.draw();
@@ -97,6 +98,8 @@ export async function dialogue(lines: Line[], onLine?: (line: Line | null) => vo
   const root = $('dialogue'), name = $('dlgName'), text = $('dlgText');
   const L = $<HTMLImageElement>('portL'), R = $<HTMLImageElement>('portR');
   dialogueOpen = true;
+  // the box would otherwise reopen showing the previous conversation's last line and speaker
+  text.textContent = name.textContent = '';
   root.hidden = false;
   L.hidden = R.hidden = true;
   root.classList.remove('closing');

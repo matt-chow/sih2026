@@ -62,7 +62,7 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
   padding: 8px 12px; border-radius: 10px; background: var(--panel); font-weight: 700; font-size: 14px; white-space: nowrap;
   border: 2px solid var(--green); animation: bob 1s ease-in-out infinite alternate;
 }
-#promptAlt { display: flex; gap: 8px; align-items: center; margin-left: 6px; padding-left: 12px; border-left: 2px solid var(--green); color: #ffd400; font-style: normal; }
+#promptAlt { display: flex; gap: 8px; align-items: center; margin-left: 10px; color: #ffd400; font-style: normal; }
 #promptAlt[hidden] { display: none; }
 #promptAlt i { font-style: normal; }
 #prompt::after { content: ''; position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); border: 7px solid transparent; border-top-color: var(--green); border-bottom: 0; }
@@ -171,7 +171,7 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
 .bt-foe, .bt-player { position: absolute; display: grid; justify-items: center; }
 .bt-foe { right: 14%; top: 10%; height: min(40vh, 340px); aspect-ratio: 2 / 3; }
 .bt-player { left: 12%; bottom: 0; height: min(48vh, 420px); aspect-ratio: 2 / 3; }
-.bt-foe img, .bt-player img { position: relative; height: 100%; width: auto; filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.15)); }
+.bt-foe img, .bt-player img { position: relative; height: 100%; width: auto; image-rendering: pixelated; filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.15)); }
 #battle.in .bt-foe { animation: enterR 0.7s var(--ease-out); }
 #battle.in .bt-player { animation: enterL 0.7s var(--ease-out); }
 .bt-foe img { animation: idle 1.2s ease-in-out infinite alternate; }
