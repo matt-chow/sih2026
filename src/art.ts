@@ -4,11 +4,12 @@
 // Everything is procedural SVG unless an artist file with the matching name exists in
 // src/art/ (see src/art/README.md) — then that wins.
 
-export type CharId = 'hensen' | 'kevin' | 'alice';
+export type CharId = 'hensen' | 'kevin' | 'alice' | 'rachel';
 export const EMOTIONS = {
   hensen: ['neutral', 'smug', 'shocked', 'determined', 'love', 'defeated'],
   kevin: ['nervous', 'panic'],
   alice: ['smile', 'wink', 'dramatic', 'villain'],
+  rachel: ['neutral', 'friendly'],
 } as const;
 export type Emotion<C extends CharId = CharId> = (typeof EMOTIONS)[C][number];
 
@@ -32,8 +33,10 @@ const PAL: Record<CharId, Pal> = {
   hensen: { skin: '#e2b48a', hair: '#2a2a2f', hairHi: '#8d8d98', top: '#141417', topHi: '#4a4a55', inner: '#25252b', leg: '#1c1c21', shoe: '#0b0b0b', iris: '#3b2a1e' },
   // muted blue-gray office shirt, slate tie
   kevin: { skin: '#f0c9a4', hair: '#6a4a2e', hairHi: '#8f6a44', top: '#8fa3ba', topHi: '#b9c7d6', inner: '#46566b', leg: '#3d4452', shoe: '#262626', iris: '#4a3a22' },
-  // rose blazer, ivory blouse, charcoal trousers — the same outfit in every scene, villain included
-  alice: { skin: '#f2cdb0', hair: '#b8442f', hairHi: '#dc6a4a', top: '#b9506f', topHi: '#d97c97', inner: '#f6efe7', leg: '#2e2e3c', shoe: '#5a1f33', iris: '#2f8a57' },
+  // ivory tailored blazer, black silk blouse, black trousers, black bob — the same outfit in every scene, villain included
+  alice: { skin: '#f1d3b8', hair: '#3a2219', hairHi: '#7a4a32', top: '#ece4d6', topHi: '#fffaf1', inner: '#1b1a20', leg: '#1b1a20', shoe: '#0d0d10', iris: '#3a2618' },
+  // rose blazer, ivory blouse, charcoal trousers, long auburn hair
+  rachel: { skin: '#f2cdb0', hair: '#b8442f', hairHi: '#dc6a4a', top: '#b9506f', topHi: '#d97c97', inner: '#f6efe7', leg: '#2e2e3c', shoe: '#5a1f33', iris: '#2f8a57' },
 };
 
 // ---------------------------------------------------------------- portraits
@@ -56,6 +59,8 @@ const FACES: Record<string, Face> = {
   'alice.wink': { eyes: ['normal', 'closed'], brows: 'raised', mouth: 'smile', blush: true, sparkle: true },
   'alice.dramatic': { eyes: ['normal', 'normal'], brows: 'raised', mouth: 'smirk', sparkle: true },
   'alice.villain': { eyes: ['narrow', 'narrow'], brows: 'angry', mouth: 'evilGrin', shadow: true },
+  'rachel.neutral': { eyes: ['normal', 'normal'], brows: 'neutral', mouth: 'smallSmile' },
+  'rachel.friendly': { eyes: ['normal', 'normal'], brows: 'raised', mouth: 'smile', blush: true },
 };
 
 function eye(kind: EyeKind, x: number, y: number, p: Pal, lashes: boolean): string {
@@ -114,11 +119,12 @@ function portraitSVG(id: CharId, emotion: string, open: number, blink: boolean):
   const p = PAL[id];
   const f = FACES[`${id}.${emotion}`];
   const eyes = f.eyes.map(e => (blink && BLINKS.has(e) ? 'closed' : e));
-  const isAlice = id === 'alice';
+  const fem = id === 'alice' || id === 'rachel';
   const parts: string[] = [];
 
   // back hair
-  if (isAlice) parts.push(`<path d="M112,250 C100,118 182,88 250,92 C330,92 404,128 392,262 C402,390 424,480 404,600 L318,600 C336,470 330,390 330,330 L170,330 C170,390 164,470 182,600 L96,600 C76,480 100,390 112,250Z" fill="${p.hair}" stroke="${OUT}" stroke-width="6"/>`);
+  if (id === 'alice') parts.push(`<path d="M112,250 C100,118 182,88 250,92 C330,92 404,128 392,262 C400,330 404,380 384,420 L318,420 C330,380 330,350 330,330 L170,330 C170,350 170,380 182,420 L116,420 C96,380 100,330 112,250Z" fill="${p.hair}" stroke="${OUT}" stroke-width="6"/>`);
+  if (id === 'rachel') parts.push(`<path d="M112,250 C100,118 182,88 250,92 C330,92 404,128 392,262 C402,390 424,480 404,600 L318,600 C336,470 330,390 330,330 L170,330 C170,390 164,470 182,600 L96,600 C76,480 100,390 112,250Z" fill="${p.hair}" stroke="${OUT}" stroke-width="6"/>`);
 
   // body
   parts.push(`<rect x="214" y="340" width="72" height="100" fill="${p.skin}" stroke="${OUT}" stroke-width="6"/>`);
@@ -141,12 +147,12 @@ function portraitSVG(id: CharId, emotion: string, open: number, blink: boolean):
   // head
   parts.push(`<ellipse cx="132" cy="268" rx="20" ry="30" fill="${p.skin}" stroke="${OUT}" stroke-width="6"/><ellipse cx="368" cy="268" rx="20" ry="30" fill="${p.skin}" stroke="${OUT}" stroke-width="6"/>`);
   parts.push(`<ellipse cx="250" cy="250" rx="120" ry="135" fill="${p.skin}" stroke="${OUT}" stroke-width="6"/>`);
-  if (isAlice) parts.push(`<circle cx="130" cy="305" r="8" fill="#f5c542" stroke="${OUT}" stroke-width="3"/><circle cx="370" cy="305" r="8" fill="#f5c542" stroke="${OUT}" stroke-width="3"/>`);
+  if (fem) parts.push(`<circle cx="130" cy="305" r="8" fill="#f5c542" stroke="${OUT}" stroke-width="3"/><circle cx="370" cy="305" r="8" fill="#f5c542" stroke="${OUT}" stroke-width="3"/>`);
 
   // face
   if (f.blush) parts.push(`<ellipse cx="172" cy="312" rx="26" ry="14" fill="#ff7a9a" opacity=".55"/><ellipse cx="328" cy="312" rx="26" ry="14" fill="#ff7a9a" opacity=".55"/>`);
   parts.push(`<path d="M250,284 L242,306 L258,306" fill="none" stroke="${OUT}" stroke-width="4" stroke-linejoin="round" opacity=".6"/>`);
-  parts.push(eye(eyes[0], 200, 262, p, isAlice), eye(eyes[1], 300, 262, p, isAlice));
+  parts.push(eye(eyes[0], 200, 262, p, fem), eye(eyes[1], 300, 262, p, fem));
   if (id === 'kevin') parts.push(`<circle cx="200" cy="262" r="38" fill="none" stroke="${OUT}" stroke-width="7"/><circle cx="300" cy="262" r="38" fill="none" stroke="${OUT}" stroke-width="7"/><path d="M238,258 Q250,250 262,258" stroke="${OUT}" stroke-width="7" fill="none"/>`);
   parts.push(mouth(f.mouth, open));
   // the reveal is lighting, not wardrobe: top-down shadow over the face, eyes catch a red glint
@@ -218,8 +224,13 @@ const ANIMS: Record<CharId, Record<string, { fps: number; poses: Pose[] }>> = {
     dramatic: { fps: 1, poses: [{ arms: 'point', leg: 0.9, mouth: 1, lean: 4 }] },
     villain: { fps: 1, poses: [{ arms: 'cross', eyes: 'narrow', leg: 0.5 }] },
   },
+  rachel: {
+    idle: { fps: 2, poses: [{}, { bob: 0.6 }] },
+    walk: { fps: 8, poses: cycle(0.8) },
+    talk: { fps: 5, poses: [{ arms: 'talk', mouth: 1 }, { arms: 'talk', bob: 0.4 }] },
+  },
 };
-const MOVE: Record<CharId, string> = { hensen: 'walk', kevin: 'run', alice: 'walk' };
+const MOVE: Record<CharId, string> = { hensen: 'walk', kevin: 'run', alice: 'walk', rachel: 'walk' };
 
 function limb(pts: number[], color: string, w = 4) {
   const d = pts.reduce((acc, v, i) => acc + (i % 2 ? ',' : i ? ' L' : 'M') + v, '');
@@ -247,7 +258,8 @@ function spriteSVG(id: CharId, p: Pose): string {
   const shoe = (x: number) => `<ellipse cx="${x + 1.6}" cy="89.6" rx="4.2" ry="2.1" fill="${c.shoe}" stroke="${OUT}" stroke-width="1"/>`;
   const s: string[] = [`<g transform="rotate(${p.lean ?? 0} 32 90)">`];
 
-  if (id === 'alice') s.push(`<path d="M27,9 C22,16 22,30 25,38 L32,37 C29,30 29,20 30,12Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.2"/>`);
+  if (id === 'alice') s.push(`<path d="M27,9 C22,14 22,22 24,26 L31,25.5 C29,21 29,16 30,12Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.2"/>`);
+  if (id === 'rachel') s.push(`<path d="M27,9 C22,16 22,30 25,38 L32,37 C29,30 29,20 30,12Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.2"/>`);
   // legs, back then front
   s.push(limb([30, 51, 30 - leg * 6, 88], c.leg, 4.6), shoe(30 - leg * 6));
   s.push(limb([34, 51, 34 + leg * 6, 88], c.leg, 4.6), shoe(34 + leg * 6));
@@ -261,7 +273,7 @@ function spriteSVG(id: CharId, p: Pose): string {
     <path d="M38.5,28 L39.2,46" stroke="${c.topHi}" stroke-width="1" opacity=".8"/><circle cx="37.6" cy="31" r=".9" fill="#76b900"/>`);
   if (id === 'kevin') s.push(`<path d="M32,24.5 L34.5,24.5 L35,39 L33.2,41 L31.5,39Z" fill="${c.inner}" stroke="${OUT}" stroke-width=".6"/>
     <rect x="36.5" y="31" width="3.4" height="4.4" fill="#fff" stroke="${OUT}" stroke-width=".5"/><rect x="37.1" y="31.6" width="1.4" height="1.4" fill="#76b900"/><path d="M25,50.5 H41" stroke="${OUT}" stroke-width="1.4"/>`);
-  if (id === 'alice') s.push(`<path d="M30,24 L33.5,37 L37,24Z" fill="${c.inner}"/><path d="M29.5,24.5 L33,36 M37.5,24.5 L34,36" stroke="${c.topHi}" stroke-width="1.1"/><path d="M25,45 Q33,46.5 41,45" stroke="${OUT}" stroke-width=".8" fill="none"/>`);
+  if (id === 'alice' || id === 'rachel') s.push(`<path d="M30,24 L33.5,37 L37,24Z" fill="${c.inner}"/><path d="M29.5,24.5 L33,36 M37.5,24.5 L34,36" stroke="${c.topHi}" stroke-width="1.1"/><path d="M25,45 Q33,46.5 41,45" stroke="${OUT}" stroke-width=".8" fill="none"/>`);
 
   // head
   s.push(`<rect x="31" y="18" width="4.4" height="7" fill="${c.skin}" stroke="${OUT}" stroke-width="1"/>`);
@@ -283,7 +295,7 @@ function spriteSVG(id: CharId, p: Pose): string {
   s.push(ex.map(x => (eyes === 'narrow' ? `<path d="M${x - 1.2},11.4 L${x + 1},12.4"` : `<path d="M${x - 1},${browY} h2"`) + ` stroke="${c.hair}" stroke-width=".8"/>`).join(''));
   if (id === 'kevin') s.push(`<circle cx="34.6" cy="13.6" r="1.8" fill="none" stroke="${OUT}" stroke-width=".6"/><circle cx="38.2" cy="13.6" r="1.6" fill="none" stroke="${OUT}" stroke-width=".6"/><path d="M36.4,13.4 h0.2" stroke="${OUT}" stroke-width=".6"/>`);
   s.push(`<path d="M38.8,14.6 l1,2.2 l-1.2,.3" fill="none" stroke="${OUT}" stroke-width=".5" opacity=".7"/>`);
-  if (id === 'alice') s.push(`<ellipse cx="35" cy="16.6" rx="1.2" ry=".6" fill="#ff7a9a" opacity=".55"/>`);
+  if (id === 'alice' || id === 'rachel') s.push(`<ellipse cx="35" cy="16.6" rx="1.2" ry=".6" fill="#ff7a9a" opacity=".55"/>`);
   s.push(m ? `<ellipse cx="36.6" cy="18.4" rx="${0.6 + m * 0.35}" ry="${0.4 + m * 0.5}" fill="#3a0d12"/>` : `<path d="M35.4,18.3 Q36.6,18.9 37.8,18.2" stroke="${OUT}" stroke-width=".6" fill="none" stroke-linecap="round"/>`);
 
   // front arm (and the crossed back arm), Kevin's folder of secrets while running
@@ -332,6 +344,7 @@ export function frameURL(sheet: Sheet, clip: string, i = 0, flip = false): strin
 
 export type Sheets = Record<CharId, Sheet>;
 
+const decoded: HTMLImageElement[] = [];
 /** Decode every sprite sheet and portrait frame up front so nothing pops in mid-scene. */
 export async function preloadArt(): Promise<Sheets> {
   const ids = Object.keys(EMOTIONS) as CharId[];
@@ -339,6 +352,7 @@ export async function preloadArt(): Promise<Sheets> {
     const f = portraitFrames(id, e as never);
     return [f.base, ...f.talk, f.blink];
   }));
-  const [sheets] = await Promise.all([Promise.all(ids.map(loadSpriteSheet)), Promise.all([...new Set(urls)].map(loadImage))]);
+  // decode up front so swapping frames never flashes; keeping the images referenced keeps them decoded
+  const [sheets] = await Promise.all([Promise.all(ids.map(loadSpriteSheet)), Promise.all([...new Set(urls)].map(u => loadImage(u).then(i => { decoded.push(i); return i.decode(); })))]);
   return Object.fromEntries(ids.map((id, i) => [id, sheets[i]])) as Sheets;
 }

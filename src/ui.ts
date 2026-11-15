@@ -24,7 +24,7 @@ export function showPrompt(label: string | null, x = 0, y = 0) {
 // ------------------------------------------------------------ dialogue
 /** One dialogue line. `emo` must be one of that character's EMOTIONS in art.ts (type-checked); `pose` is the speaker's sprite clip (default 'talk'). */
 export type Line = { [C in CharId]: { who: C; emo: Emotion<C>; text: string; pose?: string } }[CharId];
-const NAMES: Record<CharId, string> = { hensen: 'HENSEN JUANG', kevin: 'KEVIN · ACCOUNTING', alice: 'ALICE' };
+const NAMES: Record<CharId, string> = { hensen: 'HENSEN JUANG', kevin: 'KEVIN · ACCOUNTING', alice: 'ALICE', rachel: 'RACHEL · ENGINEERING' };
 const SHAKY = new Set(['shocked', 'panic', 'villain']);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let dialogueOpen = false;
@@ -97,6 +97,7 @@ export async function dialogue(lines: Line[], onLine?: (line: Line | null) => vo
   dialogueOpen = true;
   root.hidden = false;
   L.hidden = R.hidden = true;
+  root.classList.remove('closing');
   let advance = () => {};
   const onKey = (e: KeyboardEvent) => {
     if (e.repeat || !['KeyE', 'Space', 'Enter'].includes(e.code)) return;
@@ -116,10 +117,16 @@ export async function dialogue(lines: Line[], onLine?: (line: Line | null) => vo
     anim.show(line.who, line.emo);
     anim.talk(true);
     onLine?.(line);
+    // a new face slides in; the same face changing expression flashes; the same face and expression just keeps talking
+    const fx = img.hidden || img.dataset.who !== line.who ? 'enter' : img.dataset.emo !== line.emo ? 'swap' : '';
     img.hidden = false;
+    img.dataset.who = line.who;
+    img.dataset.emo = line.emo;
+    root.dataset.who = line.who;
+    root.dataset.mood = line.emo;
     img.className = 'portrait active' + (SHAKY.has(line.emo) ? ' shake' : '');
     void img.offsetWidth;
-    img.classList.add('enter');
+    if (fx) img.classList.add(fx);
     if (!other.hidden) other.className = 'portrait dim';
     name.textContent = NAMES[line.who];
     name.className = 'dlg-name ' + (left ? 'left' : 'right');
@@ -149,6 +156,8 @@ export async function dialogue(lines: Line[], onLine?: (line: Line | null) => vo
   portL.stop();
   portR.stop();
   onLine?.(null);
+  root.classList.add('closing');
+  await wait(reducedMotion ? 0 : 220);
   root.hidden = true;
   dialogueOpen = false;
 }

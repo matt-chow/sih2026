@@ -100,17 +100,32 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
 .toast.out { animation: toastOut 0.45s ease-in forwards; }
 
 /* ------------------------------------------------------------ dialogue */
-#dialogue { position: fixed; inset: 0; z-index: 20; cursor: pointer; background: linear-gradient(transparent 45%, rgba(0, 0, 0, 0.55)); }
+#dialogue {
+  position: fixed; inset: 0; z-index: 20; cursor: pointer; animation: fadeIn 0.3s;
+  --glow: transparent; background: radial-gradient(ellipse at 50% 100%, var(--glow), transparent 60%), radial-gradient(ellipse at 50% 35%, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.62));
+}
+/* the Hensen/Alice encounter gets its own light */
+#dialogue[data-who="alice"] { --glow: rgba(255, 92, 147, 0.28); }
+#dialogue[data-mood="love"] { --glow: rgba(255, 140, 190, 0.38); }
+#dialogue[data-mood="dramatic"] { --glow: rgba(190, 40, 200, 0.4); }
+#dialogue.closing { animation: fadeIn 0.22s reverse forwards; }
+/* bust portraits: 2:3 art, feet off-screen, same height for every character */
 .portrait {
-  position: absolute; bottom: 0; height: min(64vh, 580px); width: auto; pointer-events: none;
+  position: absolute; bottom: 0; height: min(90vh, 1000px, 135vw); aspect-ratio: 2 / 3; width: auto; pointer-events: none; transform-origin: 50% 100%;
   filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5)); transition: filter 0.25s, transform 0.25s var(--ease-out), translate 0.08s, rotate 0.08s;
 }
-#portL { left: max(2vw, calc(50% - 640px)); }
-#portR { right: max(2vw, calc(50% - 640px)); }
-.portrait.dim { filter: brightness(0.42) saturate(0.6); transform: translateY(14px) scale(0.95); }
-#portL.enter { animation: enterL 0.35s var(--ease-out); }
-#portR.enter { animation: enterR 0.35s var(--ease-out); }
-.portrait.shake.enter { animation: shake 0.4s linear 2; }
+#portL { left: max(0px, calc(50% - 720px)); }
+#portR { right: max(0px, calc(50% - 720px)); }
+.portrait.dim { filter: brightness(0.4) saturate(0.55); transform: translateY(18px) scale(0.94); }
+.portrait.active { animation: breathe 3.8s ease-in-out infinite; }
+#portL.enter { animation: enterL 0.5s var(--ease-out), breathe 3.8s ease-in-out 0.5s infinite; }
+#portR.enter { animation: enterR 0.5s var(--ease-out), breathe 3.8s ease-in-out 0.5s infinite; }
+#dialogue[data-who="alice"] #portR.enter { animation: enterDrama 0.8s var(--ease-out), breathe 3.8s ease-in-out 0.8s infinite; }
+.portrait.swap { animation: swap 0.3s var(--ease-out), breathe 3.8s ease-in-out 0.3s infinite; }
+.portrait.shake.enter, .portrait.shake.swap { animation: shake 0.4s linear 2, breathe 3.8s ease-in-out 0.8s infinite; }
+#dialogue[data-mood="dramatic"] .portrait.active { filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5)) drop-shadow(-4px 0 10px rgba(225, 60, 255, 0.55)); }
+#dialogue.closing #portL { animation: enterL 0.22s reverse forwards; }
+#dialogue.closing #portR { animation: enterR 0.22s reverse forwards; }
 .dlg-box {
   position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); width: min(820px, 92vw); min-height: 128px;
   padding: 26px 30px 22px; background: var(--panel); border: 2px solid var(--green); border-radius: 14px;
@@ -138,8 +153,8 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
 }
 #battle.evil {
   background:
-    radial-gradient(ellipse at 70% 30%, rgba(118, 185, 0, 0.25), transparent 50%),
-    linear-gradient(#1a0508 0%, #2b0a10 55%, #120406 55.2%, #070203 100%);
+    radial-gradient(ellipse at 70% 30%, rgba(214, 60, 255, 0.28), transparent 50%),
+    linear-gradient(#12051c 0%, #24092f 55%, #0e0414 55.2%, #050208 100%);
   transition: background 0.3s;
 }
 .bt-stage { position: absolute; inset: 0 0 max(30vh, 180px) 0; }
@@ -147,7 +162,7 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
   position: absolute; left: 50%; bottom: -4%; transform: translateX(-50%); width: 150%; height: 26%; border-radius: 50%;
   background: radial-gradient(ellipse, #a7d27a 0 55%, #7fb455 56% 70%, transparent 71%);
 }
-#battle.evil .plat { background: radial-gradient(ellipse, #3a1015 0 55%, #5a141d 56% 70%, transparent 71%); }
+#battle.evil .plat { background: radial-gradient(ellipse, #2c0f3a 0 55%, #4a1660 56% 70%, transparent 71%); }
 .bt-foe, .bt-player { position: absolute; display: grid; justify-items: center; }
 .bt-foe { right: 14%; top: 10%; height: min(40vh, 340px); aspect-ratio: 2 / 3; }
 .bt-player { left: 12%; bottom: 0; height: min(48vh, 420px); aspect-ratio: 2 / 3; }
@@ -214,17 +229,17 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; gap: 2vw; padding-right: 4vw;
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.88) 0 55%, rgba(0, 0, 0, 0.4)); animation: fadeIn 0.2s;
 }
-/* villain reveal = same art, new lighting: red key from below-right, green rim from behind */
-#btReveal::before { content: ''; position: absolute; right: 0; bottom: 0; width: 60%; height: 100%; background: radial-gradient(ellipse at 70% 100%, rgba(255, 30, 60, 0.45), transparent 65%); }
+/* villain reveal = same outfit, new lighting: the art is painted with magenta under-light; the page adds a violet rim and glow */
+#btReveal::before { content: ''; position: absolute; right: 0; bottom: 0; width: 60%; height: 100%; background: radial-gradient(ellipse at 70% 100%, rgba(225, 40, 255, 0.5), transparent 65%); }
 #btRevealImg {
-  position: absolute; right: 2vw; bottom: 0; height: 92%; animation: enterR 0.45s var(--ease-out);
-  filter: brightness(0.85) contrast(1.15) drop-shadow(3px 0 0 #ff2d47) drop-shadow(-3px -2px 0 var(--green)) drop-shadow(0 0 30px rgba(255, 30, 60, 0.6));
+  position: absolute; right: 2vw; bottom: 0; height: 96%; aspect-ratio: 2 / 3; animation: enterDrama 0.6s var(--ease-out);
+  filter: contrast(1.08) drop-shadow(3px 0 0 #ff3fd0) drop-shadow(-3px -2px 0 #8a5cff) drop-shadow(0 0 34px rgba(200, 40, 255, 0.6));
 }
-#battle.evil #btAlice { filter: brightness(0.8) contrast(1.2) drop-shadow(2px 0 0 #ff2d47) drop-shadow(-2px 0 0 var(--green)); animation-duration: 2.4s; }
+#battle.evil #btAlice { filter: brightness(0.8) contrast(1.2) drop-shadow(2px 0 0 #ff3fd0) drop-shadow(-2px 0 0 #8a5cff); animation-duration: 2.4s; }
 #btReveal h2 {
   position: absolute; left: 4vw; top: 50%; transform: translateY(-50%); margin: 0; max-width: 55vw;
   font: clamp(18px, 2.9vw, 42px)/1.35 var(--pixel); color: #fff; text-transform: uppercase;
-  text-shadow: 3px 0 0 var(--danger), -3px 0 0 #00e5ff; animation: slam 0.5s var(--ease-back), textGlitch 1.6s steps(1) infinite 0.5s;
+  text-shadow: 3px 0 0 #ff3fd0, -3px 0 0 #8a5cff; animation: slam 0.5s var(--ease-back), textGlitch 1.6s steps(1) infinite 0.5s;
 }
 
 /* ------------------------------------------------------------ crash */
@@ -255,7 +270,7 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
   background: radial-gradient(circle at 30% 60%, #2a0a10, #050506 70%); animation: fadeIn 0.6s;
 }
 .end-card { display: flex; align-items: center; gap: 3vw; max-width: 1000px; }
-#endPortrait { height: min(56vh, 480px); filter: grayscale(0.35) drop-shadow(0 20px 40px rgba(0, 0, 0, 0.6)); animation: enterL 0.6s var(--ease-out); }
+#endPortrait { height: min(70vh, 640px); aspect-ratio: 2 / 3; filter: grayscale(0.35) drop-shadow(0 20px 40px rgba(0, 0, 0, 0.6)); animation: enterL 0.6s var(--ease-out); }
 #ending h1 { font: clamp(20px, 3vw, 40px)/1.3 var(--pixel); margin: 0 0 12px; color: #fff; }
 #ending p { margin: 0 0 22px; font-size: 18px; color: var(--muted); }
 #endStats { display: grid; grid-template-columns: auto auto; gap: 10px 32px; margin: 0 0 28px; font-size: 16px; }
@@ -306,6 +321,12 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
 @keyframes slideL { from { transform: translateX(40px); opacity: 0; } }
 @keyframes enterL { from { transform: translateX(-60px); opacity: 0; } }
 @keyframes enterR { from { transform: translateX(60px); opacity: 0; } }
+@keyframes breathe { 50% { scale: 1.006 1.012; } }
+@keyframes swap { from { scale: 1.035; filter: brightness(1.5) drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5)); } }
+@keyframes enterDrama {
+  from { transform: translateX(90px); opacity: 0; filter: brightness(3) drop-shadow(0 0 40px #ff5c93); }
+  55% { transform: translateX(-6px); opacity: 1; filter: brightness(1.4) drop-shadow(0 0 30px #ff5c93); }
+}
 @keyframes shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 @keyframes blink { 50% { opacity: 0; } }
 @keyframes idle { to { transform: translateY(-6px); } }
@@ -343,6 +364,6 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
 @keyframes rowIn { from { opacity: 0; transform: translateX(16px); } }
 
 @media (prefers-reduced-motion: reduce) {
-  #crash, .portrait.shake.enter, #battle.glitch .bt-stage, #battle.glitch .bt-box, #btReveal h2 { animation: none !important; }
+  #crash, .portrait, #battle.glitch .bt-stage, #battle.glitch .bt-box, #btReveal h2 { animation: none !important; }
   #start, .ch.alice, .ch.alice span, #prompt, .bt-foe img { animation: none; }
 }

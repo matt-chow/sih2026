@@ -29,6 +29,13 @@ export const ALICE: Line[] = [
   { who: 'alice', emo: 'dramatic', pose: 'dramatic', text: "Let's settle this… the old-fashioned way!" },
 ];
 
+/** Rachel: an ordinary coworker who has noticed everything and reported nothing. */
+export const RACHEL: Line[] = [
+  { who: 'rachel', emo: 'neutral', text: "Morning, Mr. Juang. Kevin's been shredding things since 6 a.m." },
+  { who: 'hensen', emo: 'smug', text: 'Shredding expectations. Classic Kevin.' },
+  { who: 'rachel', emo: 'friendly', text: "…Sure. I'll be by the water cooler if you need a witness." },
+];
+
 export const OBJECTIVE = {
   start: 'Someone is leaking secrets. Search the desks.',
   nothing: 'Nothing. Keep searching.',

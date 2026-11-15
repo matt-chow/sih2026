@@ -19,7 +19,7 @@ const SPY_PATH: P2[] = [
 ];
 const SPY_SPEED = 4.3;
 
-let kevin: Actor, alice: Actor, colliders: Box[];
+let kevin: Actor, alice: Actor, rachel: Actor, colliders: Box[];
 const doorPivot = new THREE.Group();
 let doorOpen = false, searched = 0, stumbles = 0;
 let spyIdx = 0, spyStun = 0, spyBoost = 0, spyCooldown = 0;
@@ -213,6 +213,8 @@ function build(room: Room) {
 
   kevin = room.actor('kevin', SPY_PATH[0].x, SPY_PATH[0].z, 2.0);
   alice = room.actor('alice', DOOR.x, DOOR.z - 0.6);
+  rachel = room.actor('rachel', 10.2, -2.4);
+  rachel.face(-1);
   colliders = room.colliders;
   setupBattle(sheets);
 }
@@ -229,7 +231,10 @@ export default {
   id: 'office',
   bounds: BOUNDS,
   build,
-  things: [desk('A', -3.6), desk('B', 0), desk('C', 3.6)],
+  things: [
+    desk('A', -3.6), desk('B', 0), desk('C', 3.6),
+    { get at() { return rachel.pos; }, label: 'Talk to Rachel', lines: L.RACHEL, when: () => game.state === 'EXPLORATION' },
+  ],
   exits: [{
     area: { minX: 8.2, maxX: 9.8, minZ: -8, maxZ: -7.3 },
     to: 'hallway',
