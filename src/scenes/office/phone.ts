@@ -21,7 +21,14 @@ dialog.innerHTML = `
   <section id="phone-email" hidden><button id="phone-back">← ${L.back}</button><div class="phone-mail" tabindex="0"><p></p></div><button id="phone-investigate">${L.investigate}</button></section>`;
 document.body.append(dialog);
 const el = <T extends HTMLElement = HTMLElement>(id: string) => dialog.querySelector<T>(`#phone-${id}`)!;
-el('email').querySelector('p')!.textContent = L.email;
+const [sender, subject, ...body] = L.email.split('\n');
+const mailSender = document.createElement('strong');
+mailSender.className = 'phone-mail-sender';
+mailSender.textContent = sender;
+const mailSubject = document.createElement('span');
+mailSubject.className = 'phone-mail-subject';
+mailSubject.textContent = subject;
+el('email').querySelector('p')!.replaceChildren(mailSender, '\n', mailSubject, '\n' + body.join('\n'));
 const launcher = document.createElement('button');
 launcher.id = 'phone-launcher';
 launcher.textContent = L.open;
