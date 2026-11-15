@@ -3,6 +3,7 @@ import { frameURL, portraitSrc, type CharId, type Sheets } from './art';
 import { sfx } from './audio';
 import { placeRect, type Rect } from './logic';
 import { $, wait, hearts, stock, formatPrice, OPEN_PRICE, PortraitAnim } from './ui';
+import noJacket from './art/portrait_hensen_nojacket.webp';
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const FINAL_PRICE = -420.69;
@@ -405,7 +406,7 @@ export function showEnding(seconds: number, verdict: string, won: boolean, onRep
   $('battle').hidden = true;
   const el = $('ending');
   el.hidden = false;
-  $<HTMLImageElement>('endPortrait').src = portraitSrc('hensen', won ? 'smug' : 'defeated');
+  $<HTMLImageElement>('endPortrait').src = won ? portraitSrc('hensen', 'smug') : noJacket; // the jacket was liquidated
   $('endTitle').textContent = won ? 'SPY CAUGHT. NJIDION IS SAVED' : 'NJIDION HAS BEEN COMPROMISED';
   $('endTag').textContent = won ? 'W + RIZZ + AURA' : 'L + RATIO + SKILL ISSUE';
   $('endVerdict').textContent = verdict;
