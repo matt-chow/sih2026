@@ -2,7 +2,7 @@
 import { frameURL, portraitSrc, type Sheets } from './art';
 import { sfx } from './audio';
 import { placeRect, type Rect } from './logic';
-import { $, wait, hearts, stock, formatPrice, OPEN_PRICE } from './ui';
+import { $, wait, hearts, stock, formatPrice, OPEN_PRICE, PortraitAnim } from './ui';
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const FINAL_PRICE = -420.69;
@@ -55,11 +55,19 @@ async function say(text: string, hold = 900) {
   await wait(hold);
 }
 
+// battle stand-ins, Alice mirrored to face left; her villain frame is the same outfit in a new pose
+let frames: Record<'hensen' | 'shocked' | 'alice' | 'dramatic' | 'villain', string>;
+let revealAnim: PortraitAnim;
+
 export function setupBattle(sheets: Sheets) {
-  $<HTMLImageElement>('btHensen').src = frameURL(sheets.hensen, 0);
-  $<HTMLImageElement>('btAlice').src = frameURL(sheets.alice, 4);
-  ($('btAlice').dataset as DOMStringMap).spy = frameURL(sheets.aliceSpy, 4);
-  ($('btAlice').dataset as DOMStringMap).cute = frameURL(sheets.alice, 4);
+  frames = {
+    hensen: frameURL(sheets.hensen, 'idle'),
+    shocked: frameURL(sheets.hensen, 'shocked'),
+    alice: frameURL(sheets.alice, 'idle', 0, true),
+    dramatic: frameURL(sheets.alice, 'dramatic', 0, true),
+    villain: frameURL(sheets.alice, 'villain', 0, true),
+  };
+  revealAnim = new PortraitAnim($<HTMLImageElement>('btRevealImg'));
 }
 
 export function resetBattle() {
@@ -71,8 +79,9 @@ export function resetBattle() {
   $('ending').hidden = true;
   $('choices').hidden = true;
   $('btText').textContent = '';
-  const alice = $<HTMLImageElement>('btAlice');
-  alice.src = alice.dataset.cute ?? alice.src;
+  revealAnim.stop();
+  $<HTMLImageElement>('btHensen').src = frames.hensen;
+  $<HTMLImageElement>('btAlice').src = frames.dramatic;
   document.querySelectorAll('.quip').forEach(q => q.remove());
 }
 
@@ -80,6 +89,7 @@ export async function battleIntro() {
   sfx.battleStart();
   $('battle').classList.add('in');
   await say('A wild ALICE appeared!', 700);
+  $<HTMLImageElement>('btAlice').src = frames.alice;
   $('btHensen').classList.add('hit');
   hearts(...centerOf('btHensen'), 6, $('btFx'));
   sfx.romance();
@@ -251,15 +261,18 @@ export async function betrayal() {
   sfx.glitch();
   battle.classList.add('glitch');
   await wait(650);
-  alice.src = alice.dataset.spy!;
+  alice.src = frames.villain;
+  $<HTMLImageElement>('btHensen').src = frames.shocked;
   battle.classList.remove('glitch');
   battle.classList.add('evil');
   sfx.sting();
-  $<HTMLImageElement>('btRevealImg').src = portraitSrc('aliceSpy', 'evil');
+  revealAnim.show('alice', 'villain');
   $('btReveal').hidden = false;
   await say('ALICE used INSIDER TRADING!', 1700);
   $('btText').textContent = '"Thanks for the root password, darling~ 💚"';
+  revealAnim.talk(true);
   await wait(1300);
+  revealAnim.stop();
 
   // 3. the crash
   await crash();

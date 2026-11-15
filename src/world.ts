@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Box, P2 } from './logic';
+import type { Sheet } from './art';
 
 export const ROOM: Box = { minX: -12, maxX: 12, minZ: -8, maxZ: 8 };
 export const DOOR: P2 = { x: 9, z: -8 };
@@ -318,7 +319,7 @@ export class World {
   }
 }
 
-/** A 2D sprite standee: cylindrical billboard with an 8-frame sheet (see art.ts). */
+/** A 2D sprite standee: camera-facing billboard playing clips from a sprite sheet (see art.ts). */
 export class Actor {
   readonly root = new THREE.Group();
   readonly pos: P2;
@@ -326,14 +327,17 @@ export class Actor {
   lift = 0;
   private mesh: THREE.Mesh;
   private tex: THREE.CanvasTexture;
-  private walkT = 0;
+  /** Animation to hold while standing still (talk, shocked…); null = idle. Moving always plays the sheet's move clip. */
+  anim: string | null = null;
+  private clip = '';
+  private clipT = 0;
   private facing = 1;
   private last = { x: 0, z: 0 };
 
-  constructor(world: World, sheet: HTMLCanvasElement, height = 2.1) {
-    this.tex = new THREE.CanvasTexture(sheet);
+  constructor(world: World, private sheet: Sheet, height = 2.1) {
+    this.tex = new THREE.CanvasTexture(sheet.canvas);
     this.tex.colorSpace = THREE.SRGBColorSpace;
-    this.tex.repeat.set(1 / 8, 1);
+    this.tex.repeat.set(1 / sheet.frames, 1);
     const w = height * (128 / 192);
     const geo = new THREE.PlaneGeometry(w, height);
     geo.translate(0, height / 2, 0);
@@ -357,18 +361,21 @@ export class Actor {
 
   face(dir: 1 | -1) { this.facing = dir; }
 
-  /** Call once per frame after moving `pos`; picks walk frame and facing from the motion. */
+  /** Call once per frame after moving `pos`; picks clip, frame and facing from the motion. */
   animate(dt: number) {
     const vx = (this.pos.x - this.last.x) / dt, vz = (this.pos.z - this.last.z) / dt;
     this.last = { x: this.pos.x, z: this.pos.z };
-    const speed = Math.hypot(vx, vz);
-    if (speed > 0.3) {
-      this.walkT += dt * (4 + speed * 1.4);
+    const speed = Math.hypot(vx, vz), moving = speed > 0.3;
+    if (moving) {
       const sx = vx * SCREEN_RIGHT.x + vz * SCREEN_RIGHT.z;
       if (Math.abs(sx) > 0.2) this.facing = sx > 0 ? 1 : -1;
-    } else this.walkT = 0;
-    const frame = speed > 0.3 ? Math.floor(this.walkT) % 4 : 0;
-    this.tex.offset.x = (frame + (this.facing < 0 ? 4 : 0)) / 8;
+    }
+    const name = moving ? this.sheet.move : this.anim && this.anim in this.sheet.clips ? this.anim : 'idle';
+    if (name !== this.clip) { this.clip = name; this.clipT = 0; }
+    const c = this.sheet.clips[name];
+    this.clipT += dt * (moving ? 4 + speed * 1.4 : c.fps); // stride cadence follows speed
+    this.tex.offset.x = (c.start + Math.floor(this.clipT) % c.count) / this.sheet.frames;
+    this.mesh.scale.x = this.facing; // mirror instead of storing left-facing frames
     this.mesh.rotation.z = this.tilt;
     this.mesh.position.y = this.lift;
   }

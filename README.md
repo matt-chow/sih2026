@@ -28,7 +28,7 @@ npm run preview   # serve dist/ locally
 | File | What |
 |------|------|
 | `src/logic.ts` | FSM table, circle-vs-box collision, evasive-button placement, waypoint following. DOM-free, tested in `tests/`. |
-| `src/art.ts` | Procedural SVG sprites and portraits; auto-uses artist PNGs from `src/art/`. |
+| `src/art.ts` | Character asset system: sprite clips (`ANIMS`), portrait expressions with talk/blink frames, procedural SVG fallback; auto-uses artist PNG/WebP files from `src/art/`. |
 | `src/audio.ts` | Web Audio sound effects (`sfx.*`), no audio files. |
 | `src/world.ts` | Office scene (geometry merged per material), iso camera, colliders, billboard actors, adaptive pixel ratio. |
 | `src/ui.ts` | Dialogue, toasts, stock ticker, HUD (HTML/CSS overlays). |
@@ -39,7 +39,7 @@ Gameplay (`world.ts`, `main.ts`) and UI (`ui.ts`, `battle.ts`) are separate so p
 
 ## Artists
 
-See `src/art/README.md`. Drop PNGs with the listed names into `src/art/`; they replace the placeholder art automatically on the next build.
+See `src/art/README.md` (asset manifest, style bible, frame orders, prompts). Drop PNG/WebP files with the listed names into `src/art/`; they replace the placeholder art automatically on the next build.
 
 ## Deploy (Vercel)
 

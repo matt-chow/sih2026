@@ -17,19 +17,20 @@ const DESK_LINES: Record<DeskId, Line[]> = {
     { who: 'hensen', emo: 'smug', text: 'Not a crime. Promote this man.' },
   ],
   C: [
-    { who: 'hensen', emo: 'shocked', text: '"TOTALLY NOT STOLEN CHIP BLUEPRINTS — deliver to RIVAL CORP." Signed: KEVIN.' },
-    { who: 'hensen', emo: 'shocked', text: 'KEVIN?!' },
+    { who: 'hensen', emo: 'shocked', pose: 'shocked', text: '"TOTALLY NOT STOLEN CHIP BLUEPRINTS — deliver to RIVAL CORP." Signed: KEVIN.' },
+    { who: 'hensen', emo: 'shocked', pose: 'shocked', text: 'KEVIN?!' },
   ],
 };
 const SPY_LINES: Line[] = [
-  { who: 'kevin', emo: 'panic', text: 'M-Mr. Juang! Those are just my… vacation photos!' },
-  { who: 'kevin', emo: 'panic', text: 'Of a chip. In Bermuda. OKAY BYE!!' },
+  { who: 'kevin', emo: 'nervous', pose: 'idle', text: 'M-Mr. Juang! Those are just my… vacation photos!' },
+  { who: 'kevin', emo: 'panic', pose: 'panic', text: 'Of a chip. In Bermuda. OKAY BYE!!' },
+  { who: 'hensen', emo: 'determined', text: 'Nobody leaks on my watch. GET BACK HERE!' },
 ];
 const ALICE_LINES: Line[] = [
   { who: 'alice', emo: 'smile', text: 'Mr. Juang! I heard about Kevin… you must be so stressed.' },
-  { who: 'hensen', emo: 'love', text: 'W-who are you? My heart is overclocking.' },
+  { who: 'hensen', emo: 'love', pose: 'shocked', text: 'W-who are you? My heart is overclocking.' },
   { who: 'alice', emo: 'wink', text: 'Just Alice. From Accounting. I would NEVER betray you~' },
-  { who: 'alice', emo: 'smile', text: "Let's settle this… the old-fashioned way!" },
+  { who: 'alice', emo: 'dramatic', pose: 'dramatic', text: "Let's settle this… the old-fashioned way!" },
 ];
 
 // Kevin's escape route: around the desk block, through the lounge, out the door.
@@ -48,6 +49,11 @@ setupBattle(sheets);
 const hensen = new Actor(world, sheets.hensen);
 const kevin = new Actor(world, sheets.kevin, 2.0);
 const alice = new Actor(world, sheets.alice);
+const cast = { hensen, kevin, alice };
+// the speaker strikes the line's pose; everyone else goes back to idle
+const talk = (lines: Line[]) => dialogue(lines, line => {
+  for (const [id, a] of Object.entries(cast)) a.anim = line?.who === id ? line.pose ?? 'talk' : null;
+});
 $('loading').remove();
 
 let state: State = 'START';
@@ -69,6 +75,7 @@ function resetRun() {
   kevin.face(-1);
   kevin.root.visible = true;
   kevin.tilt = 0;
+  for (const a of Object.values(cast)) a.anim = null;
   alice.root.visible = false;
   alice.set(DOOR.x, DOOR.z - 0.6);
   for (const d of world.desks) { d.searched = false; d.marker.visible = true; }
@@ -129,7 +136,7 @@ async function search(d: Desk) {
   await wait(300);
   if (d.id !== 'C') {
     sfx.meh();
-    await dialogue(DESK_LINES[d.id]);
+    await talk(DESK_LINES[d.id]);
     const left = world.desks.filter(x => !x.searched).length;
     setObjective(left === 1 ? 'One desk left. It\'s always the last desk.' : 'Nothing. Keep searching.');
     busy = false;
@@ -137,13 +144,13 @@ async function search(d: Desk) {
   }
   sfx.alert();
   world.shake = 0.6;
-  await dialogue(DESK_LINES.C);
+  await talk(DESK_LINES.C);
   go('SPY_REVEAL');
   for (const x of world.desks) x.marker.visible = false;
   kevin.face(-1);
   floatText('!!', ...xy(above(kevin)), 'big');
   sfx.alert();
-  await dialogue(SPY_LINES);
+  await talk(SPY_LINES);
   go('CHASE');
   setObjective('CATCH KEVIN!');
   sfx.run();
@@ -189,7 +196,7 @@ async function aliceEncounter() {
   hearts(...xy(above(alice, 2.2)), 10);
   hearts(...xy(above(hensen, 2.2)), 6);
   await wait(700);
-  await dialogue(ALICE_LINES);
+  await talk(ALICE_LINES);
   go('BATTLE_TRANSITION');
   $('hud').hidden = true;
   await battleTransition();
@@ -254,7 +261,8 @@ function updateChase(dt: number) {
   if (spyStun > 0) {
     spyStun -= dt;
     kevin.tilt = Math.sin(spyStun * 30) * 0.25 - 0.35;
-    if (spyStun <= 0) kevin.tilt = 0;
+    kevin.anim = 'stumble';
+    if (spyStun <= 0) { kevin.tilt = 0; kevin.anim = null; }
     return;
   }
   const speed = spyBoost > 0 ? 7.5 : SPY_SPEED;
