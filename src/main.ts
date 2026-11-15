@@ -1,101 +1,85 @@
+// Engine: input, player movement, room swapping, interaction prompts. Story lives in src/scenes/.
 import './style.css';
-import { preloadArt } from './art';
+import type * as THREE from 'three';
 import { initAudio, sfx, toggleMute } from './audio';
-import { battleIntro, battleTransition, betrayal, chooseWhatMatters, resetBattle, setupBattle, showEnding } from './battle';
-import { NEXT, followPath, resolveCircle, type P2, type State } from './logic';
-import { $, dialogue, floatText, hearts, isDialogueOpen, setObjective, showPrompt, stock, toast, wait, type Line } from './ui';
-import { Actor, DOOR, ROOM, SCREEN_RIGHT, SCREEN_UP, World, type Desk, type DeskId } from './world';
+import { resetBattle } from './battle';
+import { above, cast, game, player, talk, world } from './game';
+import { resolveCircle, type P2 } from './logic';
+import { Room, type Exit, type Scene, type Thing } from './scene';
+import { SCENES, START } from './scenes';
+import { $, floatText, isDialogueOpen, showPrompt, stock, wait } from './ui';
+import { SCREEN_RIGHT, SCREEN_UP } from './world';
 
-// ------------------------------------------------------------ script
-const DESK_LINES: Record<DeskId, Line[]> = {
-  A: [
-    { who: 'hensen', emo: 'neutral', text: 'Marketing desk. 312 stickers that say "RGB IS A LIFESTYLE."' },
-    { who: 'hensen', emo: 'smug', text: 'Suspicious only in how correct they are.' },
-  ],
-  B: [
-    { who: 'hensen', emo: 'neutral', text: 'A GPU duct-taped to a toaster. Sticky note: "IT RUNS CRYSIS NOW."' },
-    { who: 'hensen', emo: 'smug', text: 'Not a crime. Promote this man.' },
-  ],
-  C: [
-    { who: 'hensen', emo: 'shocked', pose: 'shocked', text: '"TOTALLY NOT STOLEN CHIP BLUEPRINTS — deliver to RIVAL CORP." Signed: KEVIN.' },
-    { who: 'hensen', emo: 'shocked', pose: 'shocked', text: 'KEVIN?!' },
-  ],
-};
-const SPY_LINES: Line[] = [
-  { who: 'kevin', emo: 'nervous', pose: 'idle', text: 'M-Mr. Juang! Those are just my… vacation photos!' },
-  { who: 'kevin', emo: 'panic', pose: 'panic', text: 'Of a chip. In Bermuda. OKAY BYE!!' },
-  { who: 'hensen', emo: 'determined', text: 'Nobody leaks on my watch. GET BACK HERE!' },
-];
-const ALICE_LINES: Line[] = [
-  { who: 'alice', emo: 'smile', text: 'Mr. Juang! I heard about Kevin… you must be so stressed.' },
-  { who: 'hensen', emo: 'love', pose: 'shocked', text: 'W-who are you? My heart is overclocking.' },
-  { who: 'alice', emo: 'wink', text: 'Just Alice. From Accounting. I would NEVER betray you~' },
-  { who: 'alice', emo: 'dramatic', pose: 'dramatic', text: "Let's settle this… the old-fashioned way!" },
-];
+const PLAYER_R = 0.4, WALK = 4.6, RUN = 5.6, REACH = 2.2;
 
-// Kevin's escape route: around the desk block, through the lounge, out the door.
-const SPY_PATH: P2[] = [
-  { x: 5.4, z: 1.2 }, { x: 7.2, z: 2.2 }, { x: 7.2, z: 5.4 }, { x: -1, z: 5.6 }, { x: -6.4, z: 5.2 },
-  { x: -6.4, z: -3.4 }, { x: 0, z: -3.6 }, { x: 6.6, z: -3.9 }, { x: 9, z: -6.6 }, { x: 9, z: -9.2 },
-];
-const HENSEN_START: P2 = { x: -8.6, z: -3.4 };
-const PLAYER_R = 0.4;
-const WALK = 4.6, RUN = 5.6, SPY_SPEED = 4.3;
+// ------------------------------------------------------------ rooms
+// Every room is built once at boot; walking through a door swaps which one is in the scene graph.
+interface Built { scene: Scene; room: Room; markers: Map<Thing, THREE.Object3D> }
+const rooms = new Map<string, Built>(SCENES.map(scene => {
+  const room = new Room();
+  scene.build(room);
+  const markers = new Map((scene.things ?? []).map(t => [t, room.marker(t.at)] as const));
+  room.finish();
+  return [scene.id, { scene, room, markers }];
+}));
+let here = rooms.get(START.scene)!;
+const used = new Set<Thing>();
+let blockedBy: Exit | null = null;
 
-// ------------------------------------------------------------ boot
-const world = new World($<HTMLCanvasElement>('scene'));
-const sheets = await preloadArt();
-setupBattle(sheets);
-const hensen = new Actor(world, sheets.hensen);
-const kevin = new Actor(world, sheets.kevin, 2.0);
-const alice = new Actor(world, sheets.alice);
-const cast = { hensen, kevin, alice };
-// the speaker strikes the line's pose; everyone else goes back to idle
-const talk = (lines: Line[]) => dialogue(lines, line => {
-  for (const [id, a] of Object.entries(cast)) a.anim = line?.who === id ? line.pose ?? 'talk' : null;
-});
-$('loading').remove();
-
-let state: State = 'START';
-function go(next: State) {
-  if (NEXT[state] !== next) throw new Error(`Illegal transition ${state} → ${next}`);
-  state = next;
-  document.body.dataset.state = next;
+function enter(id: string, at: P2) {
+  world.scene.remove(here.room.group);
+  here = rooms.get(id)!;
+  world.scene.add(here.room.group);
+  player.set(at.x, at.z);
+  world.jump = true;
+  here.scene.enter?.();
 }
 
-// per-run state
-let busy = false, t0 = 0, elapsed = 0, stumbles = 0;
-let spyIdx = 0, spyStun = 0, spyBoost = 0, spyCooldown = 0;
-let aliceWalking = false, aliceTimer = 0;
+async function travel(e: Exit) {
+  game.busy = true;
+  sfx.door();
+  $('fade').classList.add('on');
+  await wait(220);
+  enter(e.to, e.at);
+  $('fade').classList.remove('on');
+  game.busy = false;
+}
 
-function resetRun() {
-  hensen.set(HENSEN_START.x, HENSEN_START.z);
-  hensen.face(1);
-  kevin.set(SPY_PATH[0].x, SPY_PATH[0].z);
-  kevin.face(-1);
-  kevin.root.visible = true;
-  kevin.tilt = 0;
-  for (const a of Object.values(cast)) a.anim = null;
-  alice.root.visible = false;
-  alice.set(DOOR.x, DOOR.z - 0.6);
-  for (const d of world.desks) { d.searched = false; d.marker.visible = true; }
-  world.doorOpen = false;
-  busy = false; stumbles = 0; spyIdx = 0; spyStun = spyBoost = spyCooldown = 0;
-  aliceWalking = false; aliceTimer = 0;
+const available = (t: Thing) => !(t.once && used.has(t)) && (t.when?.() ?? true);
+
+async function use(t: Thing) {
+  game.busy = true;
+  if (t.once) used.add(t);
+  if (t.lines) await talk(t.lines);
+  await t.use?.();
+  game.busy = false;
+}
+
+// ------------------------------------------------------------ runs
+let t0 = 0;
+function newRun() {
+  game.busy = false;
+  game.elapsed = 0;
+  used.clear();
+  blockedBy = null;
+  for (const s of SCENES) s.reset?.();
+  for (const a of cast) a.anim = null;
   stock.reset();
   resetBattle();
   $('toasts').replaceChildren();
   $('floaters').replaceChildren();
   $('hud').hidden = false;
-  setObjective('Someone is leaking secrets. Search the desks.');
+  enter(START.scene, START.at);
+  player.face(1);
   t0 = performance.now();
 }
+game.restart = () => { newRun(); game.go('EXPLORATION'); };
 
 function begin() {
   initAudio();
   $('title').hidden = true;
-  resetRun();
-  go('EXPLORATION');
+  newRun();
+  game.go('EXPLORATION');
   sfx.select();
 }
 
@@ -103,11 +87,11 @@ function begin() {
 const keys = new Set<string>();
 let interact = false;
 addEventListener('keydown', e => {
-  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) && state !== 'BATTLE_CHOICE') e.preventDefault();
+  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) && game.state !== 'BATTLE_CHOICE') e.preventDefault();
   keys.add(e.code);
   if (e.repeat) return;
   if (e.code === 'KeyM') $('mute').textContent = toggleMute() ? '🔇 M' : '🔊 M';
-  if (state === 'START' && ['Enter', 'Space', 'KeyE'].includes(e.code)) begin();
+  if (game.state === 'START' && ['Enter', 'Space', 'KeyE'].includes(e.code)) begin();
   else if (['KeyE', 'Space', 'Enter'].includes(e.code) && !isDialogueOpen()) interact = true;
 });
 addEventListener('keyup', e => keys.delete(e.code));
@@ -124,164 +108,49 @@ function inputDir() {
 }
 
 const dist = (a: P2, b: P2) => Math.hypot(a.x - b.x, a.z - b.z);
-const above = (a: Actor, h = 2.6) => world.toScreen(a.pos.x, h, a.pos.z);
-
-// ------------------------------------------------------------ story beats
-async function search(d: Desk) {
-  busy = true;
-  d.searched = true;
-  d.marker.visible = false;
-  showPrompt(null);
-  sfx.search();
-  await wait(300);
-  if (d.id !== 'C') {
-    sfx.meh();
-    await talk(DESK_LINES[d.id]);
-    const left = world.desks.filter(x => !x.searched).length;
-    setObjective(left === 1 ? 'One desk left. It\'s always the last desk.' : 'Nothing. Keep searching.');
-    busy = false;
-    return;
-  }
-  sfx.alert();
-  world.shake = 0.6;
-  await talk(DESK_LINES.C);
-  go('SPY_REVEAL');
-  for (const x of world.desks) x.marker.visible = false;
-  kevin.face(-1);
-  floatText('!!', ...xy(above(kevin)), 'big');
-  sfx.alert();
-  await talk(SPY_LINES);
-  go('CHASE');
-  setObjective('CATCH KEVIN!');
-  sfx.run();
-  busy = false;
-}
-
-const xy = (p: { x: number; y: number }): [number, number] => [p.x, p.y];
-
-async function spyEscaped() {
-  kevin.root.visible = false;
-  sfx.door();
-  go('SPY_ESCAPE');
-  setObjective('Kevin escaped…');
-  setTimeout(() => (world.doorOpen = false), 400);
-  toast('<b>KEVIN ESCAPED</b><span>with <code>chip_blueprints_FINAL_v2.zip</code></span>', 'danger', 2600);
-  stock.show();
-  await wait(500);
-  sfx.stockDown();
-  await stock.animate(970, 1100);
-  await wait(250);
-  sfx.achievement();
-  toast('<i>🏆</i><b>LEATHER JACKET UNLOCKED</b><span>You were already wearing it.</span>', 'achievement', 3000);
-  await wait(1200);
-  if (state !== 'SPY_ESCAPE') return;
-  world.doorOpen = true;
-  sfx.door();
-  alice.root.visible = true;
-  alice.set(DOOR.x, DOOR.z - 0.4);
-  aliceWalking = true;
-  setObjective('…who\'s that?');
-}
-
-async function aliceEncounter() {
-  go('ALICE_ENCOUNTER');
-  aliceWalking = false;
-  busy = true;
-  showPrompt(null);
-  world.doorOpen = false;
-  const sx = (alice.pos.x - hensen.pos.x) * SCREEN_RIGHT.x + (alice.pos.z - hensen.pos.z) * SCREEN_RIGHT.z;
-  hensen.face(sx >= 0 ? 1 : -1);
-  alice.face(sx >= 0 ? -1 : 1);
-  sfx.romance();
-  hearts(...xy(above(alice, 2.2)), 10);
-  hearts(...xy(above(hensen, 2.2)), 6);
-  await wait(700);
-  await talk(ALICE_LINES);
-  go('BATTLE_TRANSITION');
-  $('hud').hidden = true;
-  await battleTransition();
-  go('BATTLE_CHOICE');
-  await battleIntro();
-  await chooseWhatMatters();
-  go('ALICE_REVEAL');
-  await betrayal();
-  go('ENDING');
-  showEnding(elapsed, stumbles, () => { resetRun(); go('EXPLORATION'); });
-}
+const inside = (p: P2, b: Exit['area']) => p.x >= b.minX && p.x <= b.maxX && p.z >= b.minZ && p.z <= b.maxZ;
 
 // ------------------------------------------------------------ frame update
 function update(dt: number) {
-  const playing = state !== 'START' && state !== 'ENDING';
-  if (playing && state !== 'ALICE_REVEAL') elapsed = (performance.now() - t0) / 1000;
-  $('timer').textContent = elapsed.toFixed(1) + 's';
+  const { state } = game, { scene, room } = here;
+  if (state !== 'START' && state !== 'ALICE_REVEAL' && state !== 'ENDING') game.elapsed = (performance.now() - t0) / 1000;
+  $('timer').textContent = game.elapsed.toFixed(1) + 's';
 
-  const canMove = !busy && (state === 'EXPLORATION' || state === 'CHASE' || state === 'SPY_ESCAPE');
-  if (canMove) {
+  const free = !game.busy && state !== 'START' && state !== 'ENDING';
+  if (free) {
     const d = inputDir(), speed = state === 'CHASE' ? RUN : WALK;
-    hensen.pos.x += d.x * speed * dt;
-    hensen.pos.z += d.z * speed * dt;
-    resolveCircle(hensen.pos, PLAYER_R, world.colliders, ROOM);
+    player.pos.x += d.x * speed * dt;
+    player.pos.z += d.z * speed * dt;
+    resolveCircle(player.pos, PLAYER_R, room.colliders, scene.bounds);
+
+    const exit = scene.exits?.find(e => inside(player.pos, e.area));
+    const msg = exit?.locked?.();
+    if (exit && !msg) void travel(exit);
+    else if (exit && msg && blockedBy !== exit) { sfx.nope(); floatText(msg, ...above(player.pos, 2.9)); }
+    blockedBy = exit && msg ? exit : null;
   }
 
-  // interaction prompt
-  if (state === 'EXPLORATION' && !busy) {
-    const near = world.desks.find(d => !d.searched && dist(hensen.pos, { x: d.x, z: d.z + 1.9 }) < 1.4);
-    if (near) {
-      const p = world.toScreen(near.x, 1.6, near.z);
-      showPrompt(near.id === 'C' ? "Search Kevin's desk" : 'Search desk', p.x, p.y);
-      if (interact) void search(near);
-    } else showPrompt(null);
-  }
+  // interaction prompt for the nearest usable thing
+  const near = free ? scene.things?.filter(available).map(t => ({ t, d: dist(player.pos, t.at) })).filter(n => n.d < REACH).sort((a, b) => a.d - b.d)[0]?.t : undefined;
+  if (near) {
+    const p = world.toScreen(near.at.x, 1.6, near.at.z);
+    showPrompt(near.label, p.x, p.y);
+    if (interact) void use(near);
+  } else showPrompt(null);
   interact = false;
 
-  // Kevin idles nervously, then runs the route
-  if (state === 'EXPLORATION' || state === 'SPY_REVEAL') kevin.lift = Math.abs(Math.sin(performance.now() / 160)) * 0.06;
-  if (state === 'CHASE') updateChase(dt);
-
-  if (state === 'SPY_ESCAPE' && aliceWalking) {
-    aliceTimer += dt;
-    const d = dist(alice.pos, hensen.pos);
-    if (d > 1.8) {
-      alice.pos.x += (hensen.pos.x - alice.pos.x) / d * 2.6 * dt;
-      alice.pos.z += (hensen.pos.z - alice.pos.z) / d * 2.6 * dt;
-      // once inside, she walks around furniture like everyone else
-      if (alice.pos.z > -7.4) resolveCircle(alice.pos, PLAYER_R, world.colliders, ROOM);
-    }
-    if (d < 2.4 || aliceTimer > 7) void aliceEncounter(); // shortcut: timeout guards against her snagging on a corner
+  const t = performance.now() / 1000;
+  for (const [thing, m] of here.markers) {
+    m.visible = available(thing);
+    m.rotation.y += dt * 2;
+    m.position.set(thing.at.x, 2.1 + Math.sin(t * 3 + thing.at.x) * 0.1, thing.at.z);
   }
 
-  hensen.animate(dt);
-  kevin.animate(dt);
-  alice.animate(dt);
-  world.update(dt, state === 'START' ? { x: 0, z: 0 } : hensen.pos);
-}
-
-function updateChase(dt: number) {
-  spyCooldown -= dt;
-  if (spyStun > 0) {
-    spyStun -= dt;
-    kevin.tilt = Math.sin(spyStun * 30) * 0.25 - 0.35;
-    kevin.anim = 'stumble';
-    if (spyStun <= 0) { kevin.tilt = 0; kevin.anim = null; }
-    return;
-  }
-  const speed = spyBoost > 0 ? 7.5 : SPY_SPEED;
-  spyBoost -= dt;
-  spyIdx = followPath(kevin.pos, SPY_PATH, spyIdx, speed * dt);
-  kevin.lift = 0;
-  if (spyIdx >= SPY_PATH.length - 3) world.doorOpen = true;
-  if (spyIdx === SPY_PATH.length - 1) { void spyEscaped(); return; }
-  // caught up: Kevin trips, recovers, sprints. He always gets away.
-  if (spyCooldown <= 0 && dist(kevin.pos, hensen.pos) < 1.15) {
-    spyStun = 0.55;
-    spyBoost = 1.1;
-    spyCooldown = 2.2;
-    stumbles++;
-    sfx.stumble();
-    world.shake = 0.35;
-    floatText('*TRIPS*', ...xy(above(kevin)), 'warn');
-    floatText(['Got y—!', 'Almost!', 'KEVIN!!'][stumbles % 3], ...xy(above(hensen, 2.9)));
-  }
+  scene.update?.(dt);
+  player.animate(dt);
+  for (const a of room.actors) a.animate(dt);
+  const b = scene.bounds;
+  world.update(dt, state === 'START' ? { x: (b.minX + b.maxX) / 2, z: (b.minZ + b.maxZ) / 2 } : player.pos, b);
 }
 
 let last = performance.now();
@@ -292,10 +161,11 @@ function loop(now: number) {
   world.render();
   requestAnimationFrame(loop);
 }
-resetRun();
+newRun();
 $('hud').hidden = true;
-document.body.dataset.state = state;
+$('loading').remove();
+document.body.dataset.state = game.state;
 requestAnimationFrame(loop);
 
 // Exposed for automated playthrough tests.
-Object.assign(window, { __game: { get state() { return state; }, hensen, kevin, alice, world } });
+Object.assign(window, { __game: { get state() { return game.state; }, get scene() { return here.scene.id; }, player, world, game } });

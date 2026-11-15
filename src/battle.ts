@@ -108,7 +108,7 @@ interface Evader {
   homeX: number; homeY: number; fleeing: boolean; rot: number; quip: number;
 }
 const QUIPS: Record<string, string[]> = {
-  ngidia: ['Not now. Board meeting.', 'Shareholders can\'t hear you.', 'I\'m vesting, go away.'],
+  njidion: ['Not now. Board meeting.', 'Shareholders can\'t hear you.', 'I\'m vesting, go away.'],
   family: ['Dad, it\'s my recital…', 'We moved to Ohio in 2019.', 'Who are you again?'],
   america: ['🦅 CAAAAW!', 'FREEDOM DODGES!', 'Tariffs say no.'],
 };
@@ -197,7 +197,7 @@ export function chooseWhatMatters(): Promise<void> {
       // clamp the drawn position too: the lerp path can cut across Alice
       const q = placeRect({ x: e.x + (e.tx - e.x) * k, y: e.y + (e.ty - e.y) * k, w, h }, bounds(), aliceRect());
       e.x = q.x; e.y = q.y;
-      const target = e.key === 'america' && e.fleeing ? 360 : e.key === 'ngidia' && e.fleeing ? -8 : 0;
+      const target = e.key === 'america' && e.fleeing ? 360 : e.key === 'njidion' && e.fleeing ? -8 : 0;
       e.rot += (target - e.rot) * k;
       if (!e.fleeing && e.key === 'america' && Math.abs(e.rot) > 300) e.rot = 0;
       // america flips on X so its bounding box never grows past the clamp margin

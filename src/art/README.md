@@ -58,7 +58,7 @@ Idle = a subtle breathing pair; walk and run = contact, pass, contact, pass; tal
 
 ## Character sheets
 
-**Hensen Juang (`hensen`)**: CEO and protagonist. Closely resembles Jensen Huang: age and facial structure, short swept-back salt-and-pepper hair. Signature black leather jacket, black tee, dark trousers, plain dark shoes, a small NGIDIA-green (`#76b900`) pin. Average-to-fit build.
+**Hensen Juang (`hensen`)**: CEO and protagonist. Closely resembles Jensen Huang: age and facial structure, short swept-back salt-and-pepper hair. Signature black leather jacket, black tee, dark trousers, plain dark shoes, a small Njidion-green (`#76b900`) pin. Average-to-fit build.
 Palette: jacket `#141417` / sheen `#4a4a55`, tee `#25252b`, skin `#e2b48a`.
 
 **Kevin (`kevin`)**: the office spy. Ordinary, slightly suspicious. Slim. Muted blue-gray shirt `#8fa3ba`, slate tie `#46566b`, gray trousers `#3d4452`, employee badge on a lanyard, round glasses, neat brown hair, a manila folder.
@@ -72,3 +72,5 @@ She never changes outfit; the reveal is only expression, pose and lighting.
 > Fighting-game character portrait in the style of Street Fighter III and Alpha official art, bold black ink outlines, painterly cel shading with soft brush texture, cinematic rim lighting. Waist-up bust, 3/4 view, realistic proportions, not muscular. {character sheet line}. Expression: {prompt notes}. Transparent background, 500×600, centred, consistent framing.
 
 Check the image tool's licence terms before shipping, and record the tool and licence here. No third-party art is used today.
+
+`njidion_logo.png` is the company logo (title screen, favicon, office and hallway walls). Replace the file to change it everywhere.

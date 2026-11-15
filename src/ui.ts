@@ -1,5 +1,5 @@
 // HTML/CSS overlays: HUD, interaction prompt, dialogue, toasts, stock ticker, floaters.
-import { portraitFrames, type CharId } from './art';
+import { portraitFrames, type CharId, type Emotion } from './art';
 import { sfx } from './audio';
 
 export const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -22,8 +22,8 @@ export function showPrompt(label: string | null, x = 0, y = 0) {
 }
 
 // ------------------------------------------------------------ dialogue
-/** `pose` is the speaker's sprite clip for this line (default 'talk'). */
-export interface Line { who: CharId; emo: string; text: string; pose?: string }
+/** One dialogue line. `emo` must be one of that character's EMOTIONS in art.ts (type-checked); `pose` is the speaker's sprite clip (default 'talk'). */
+export type Line = { [C in CharId]: { who: C; emo: Emotion<C>; text: string; pose?: string } }[CharId];
 const NAMES: Record<CharId, string> = { hensen: 'HENSEN JUANG', kevin: 'KEVIN · ACCOUNTING', alice: 'ALICE' };
 const SHAKY = new Set(['shocked', 'panic', 'villain']);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;

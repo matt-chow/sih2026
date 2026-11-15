@@ -1,6 +1,6 @@
-# NGIDIA: The 60-Second Disaster
+# Njidion: The 60-Second Disaster
 
-A 2.5D browser comedy game (Three.js + TypeScript + Vite). You are Hensen Juang, CEO of NGIDIA. Find the spy. Lose everything.
+A 2.5D browser comedy game (Three.js + TypeScript + Vite). You are Hensen Juang, CEO of Njidion. Find the spy. Lose everything.
 
 ```bash
 npm install
@@ -25,21 +25,11 @@ npm run preview   # serve dist/ locally
 
 ## Layout
 
-| File | What |
-|------|------|
-| `src/logic.ts` | FSM table, circle-vs-box collision, evasive-button placement, waypoint following. DOM-free, tested in `tests/`. |
-| `src/art.ts` | Character asset system: sprite clips (`ANIMS`), portrait expressions with talk/blink frames, procedural SVG fallback; auto-uses artist PNG/WebP files from `src/art/`. |
-| `src/audio.ts` | Web Audio sound effects (`sfx.*`), no audio files. |
-| `src/world.ts` | Office scene (geometry merged per material), iso camera, colliders, billboard actors, adaptive pixel ratio. |
-| `src/ui.ts` | Dialogue, toasts, stock ticker, HUD (HTML/CSS overlays). |
-| `src/battle.ts` | Battle wipe, evasive choices, betrayal, stock crash, ending screen. |
-| `src/main.ts` | Game loop and story script through the FSM states. |
-
-Gameplay (`world.ts`, `main.ts`) and UI (`ui.ts`, `battle.ts`) are separate so people can work in parallel. Dialogue text lives at the top of `main.ts` (`DESK_LINES`, `SPY_LINES`, `ALICE_LINES`).
+Each room is a self-contained folder in `src/scenes/<id>/` (`index.ts` = room, `lines.ts` = all its text), picked up automatically. Walking through a door fades and swaps rooms. **See `AGENTS.md`** (also loaded by Claude Code via `CLAUDE.md`) for the full map and recipes: editing dialogue, adding rooms, objects, NPCs and characters.
 
 ## Artists
 
-See `src/art/README.md` (asset manifest, style bible, frame orders, prompts). Drop PNG/WebP files with the listed names into `src/art/`; they replace the placeholder art automatically on the next build.
+See `src/art/README.md` (the asset manifest: style guide, frame orders, generation prompts). Drop PNG/WebP files with the listed names into `src/art/`; they replace the placeholder art automatically on the next build.
 
 ## Deploy (Vercel)
 

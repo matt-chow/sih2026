@@ -296,7 +296,7 @@ function spriteSVG(id: CharId, p: Pose): string {
 
 export interface Clip { start: number; count: number; fps: number }
 /** A character's sprite strip (FW x FH frames, facing right) and where each animation lives in it. */
-export interface Sheet { canvas: HTMLCanvasElement; frames: number; clips: Record<string, Clip>; move: string }
+export interface Sheet { id: CharId; canvas: HTMLCanvasElement; frames: number; clips: Record<string, Clip>; move: string }
 
 export async function loadSpriteSheet(id: CharId): Promise<Sheet> {
   const clips: Record<string, Clip> = {};
@@ -317,7 +317,7 @@ export async function loadSpriteSheet(id: CharId): Promise<Sheet> {
     const imgs = await Promise.all(poses.map(p => loadImage(svgUrl(spriteSVG(id, p)))));
     imgs.forEach((img, i) => g.drawImage(img, i * FW, 0, FW, FH));
   }
-  return { canvas: c, frames: poses.length, clips, move: MOVE[id] };
+  return { id, canvas: c, frames: poses.length, clips, move: MOVE[id] };
 }
 
 /** One frame of a sheet as an <img>-ready URL (used by the battle screen). */

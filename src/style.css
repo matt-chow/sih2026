@@ -127,6 +127,8 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
 #dialogue.ready .dlg-next { opacity: 1; animation: blink 0.8s steps(2) infinite; }
 
 /* ------------------------------------------------------------ battle */
+#fade { position: fixed; inset: 0; z-index: 45; background: #050607; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+#fade.on { opacity: 1; }
 #wipe { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
 #battle {
   position: fixed; inset: 0; z-index: 40; overflow: hidden; font-family: var(--pixel); color: var(--retro-ink);
@@ -184,7 +186,7 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
   display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 10px; white-space: nowrap;
 }
 .ch:focus-visible { outline: 4px solid #2f6bff; outline-offset: 4px; }
-.ch.ngidia { background: var(--ink); color: var(--green); border-color: var(--green); box-shadow: 0 5px 0 #2f4a00; }
+.ch.njidion { background: var(--ink); color: var(--green); border-color: var(--green); box-shadow: 0 5px 0 #2f4a00; }
 .ch.family { background: #ffe8c4; color: #6b3b10; border-color: #b8742d; box-shadow: 0 5px 0 #b8742d; }
 .ch.america {
   color: #fff; text-shadow: -2px 0 #1b2a6b, 2px 0 #1b2a6b, 0 -2px #1b2a6b, 0 2px #1b2a6b; border-color: #1b2a6b; box-shadow: 0 5px 0 #1b2a6b;
@@ -203,7 +205,7 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
   animation: quip 1.3s var(--ease-out) forwards;
 }
 .quip::after { content: ''; position: absolute; left: 50%; bottom: -11px; border: 8px solid transparent; border-top-color: var(--retro-ink); border-bottom: 0; transform: translateX(-50%); }
-.quip.ngidia { background: var(--ink); color: var(--green); border-color: var(--green); }
+.quip.njidion { background: var(--ink); color: var(--green); border-color: var(--green); }
 .quip.america { background: #26389a; color: #fff; }
 #btFx { position: fixed; inset: 0; pointer-events: none; z-index: 35; }
 
@@ -279,8 +281,7 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
   background: radial-gradient(circle at 50% 45%, rgba(8, 10, 12, 0.55), rgba(5, 6, 8, 0.94) 70%);
 }
 .title-card { text-align: center; animation: fadeUp 0.8s var(--ease-out); }
-.logo { display: inline-flex; align-items: center; gap: 14px; font: 900 clamp(34px, 5vw, 60px) 'Arial Black', Impact, sans-serif; letter-spacing: 0.02em; }
-.logo i { width: 0.9em; height: 0.9em; background: var(--green); box-shadow: inset 0 0 0 0.16em var(--green), inset 0 0 0 0.3em var(--ink); }
+.logo { display: block; width: min(360px, 70vw); height: auto; margin: 0 auto; border-radius: 10px; }
 .title-card h1 {
   margin: 18px 0 22px; font: clamp(20px, 3.6vw, 44px)/1.35 var(--pixel); color: var(--green-hi);
   text-shadow: 0 0 18px rgba(118, 185, 0, 0.55), 0 4px 0 #2f4a00;
