@@ -20,6 +20,8 @@ export interface Thing {
   once?: boolean;
   /** Only usable while this returns true, e.g. () => game.state === 'EXPLORATION'. */
   when?: () => boolean;
+  /** A second action on the Q key, shown next to the E prompt (e.g. 'INTERROGATE'). */
+  alt?: { label: string; use: () => void | Promise<void> };
 }
 
 /** Walk into `area` and you are moved to scene `to` at `at`. */

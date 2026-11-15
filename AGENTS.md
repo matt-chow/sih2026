@@ -29,7 +29,7 @@ implement it in `src/main.ts`, and leave every existing scene untouched.
 | `src/logic.ts` | Story FSM (`State`, `NEXT`), collision, path following. DOM-free, tested. | Adding a story state (also update `tests/logic.test.ts`, which counts states). |
 | `src/art.ts` | Character assets: `EMOTIONS` (portraits with talk/blink frames), `ANIMS` (sprite clips), procedural SVG fallback. | New character, emotion or pose. |
 | `src/ui.ts` | Dialogue box, toasts, floaters, stock ticker. `NAMES` = name tag per character. | New character. |
-| `src/battle.ts` | The final battle; its text is in `QUIPS` and the `say(...)` calls. | Battle jokes. |
+| `src/battle.ts` | Pokémon-style duel primitives (`startDuel`, `attack`, `faint`, `spyReveal`), stock crash, ending card. The duel *script* is `BATTLE` in `src/scenes/office/lines.ts`. | New battle effects. |
 | `index.html` | Title screen, battle buttons, crash ticker, ending text. | Those screens' text. |
 | `src/art/` | Artist PNG/WebP drop folder; its README is the asset manifest. Also `njidion_logo.png`. | New art. |
 
@@ -55,6 +55,7 @@ Append to that scene's `things`, with its text in `lines.ts`:
 ```
 Scenes that play dialogue in code use `await talk(L.X)` from `game.ts`.
 Optional: `once: true` (gone after use), `when: () => game.state === 'EXPLORATION'`,
+`alt: { label: 'INTERROGATE', use: async () => { ... } }` (a second action on the Q key, shown in the same prompt),
 `use: async () => { ... }` (runs after `lines`; sounds via `sfx.*`, popups via `toast`/`floatText`).
 The green marker and the "E" prompt are automatic. Usable within 2.2 units of `at`.
 
