@@ -11,26 +11,22 @@ export const BRIEFING: Line[] = [
 /** A: Kevin (CTO), B: Brad (CFO), C: Alice (the spy). */
 export const DESKS: Record<'A' | 'B' | 'C', Line[]> = {
   A: [
-    { who: 'hensen', emo: 'shocked', pose: 'shocked', text: 'A USB stick labelled "CLASSIFIED GPU SOURCE CODE". Plus 400 CUDA files.' },
-    { who: 'hensen', emo: 'shocked', pose: 'shocked', text: 'Kevin. Why do you have our classified source code?' },
+    { who: 'hensen', emo: 'determined', text: 'Kevin. Are you a Chinese spy?' },
+    { who: 'kevin', emo: 'nervous', text: "Senator, I'm Singaporean." },
+    { who: 'hensen', emo: 'shocked', pose: 'shocked', text: 'Then why do you have our classified source code?' },
     { who: 'kevin', emo: 'nervous', text: "Bro I'm optimizing Minecraft shaders. The RTX 5090 is NOT enough 💀" },
     { who: 'kevin', emo: 'nervous', text: 'Ray-traced dirt blocks. 9 FPS. We are so back.' },
     { who: 'hensen', emo: 'smug', text: 'Understandable. Keep cooking.' },
   ],
   B: [
-    { who: 'hensen', emo: 'shocked', pose: 'shocked', text: 'Wire transfer: $800,000,000 to "Definitely Not A Shell Co., Shenzhen".' },
-    { who: 'hensen', emo: 'neutral', text: 'Open on his screen: GPU_EXPORT_CONTROL_BYPASS.xlsx' },
     { who: 'hensen', emo: 'shocked', pose: 'shocked', text: 'Why did you transfer $800 million to China?' },
     { who: 'cfo', emo: 'hype', text: "Portfolio diversification, king. We're bullish on the Chinese market." },
     { who: 'cfo', emo: 'hype', text: 'Rest of payroll is in $DOGEGPU. Up 4% today. Generational wealth.' },
     { who: 'hensen', emo: 'smug', text: 'Based. Financial literacy.' },
   ],
   C: [
-    { who: 'hensen', emo: 'neutral', text: 'Laptop says "OPERATION STEAL BLACKWELL". Folder: "STOLEN GPU SCHEMATICS".' },
-    { who: 'hensen', emo: 'neutral', text: 'Email to "My Handler": "Blackwell secured. Hensen suspects nothing. lol."' },
-    { who: 'hensen', emo: 'neutral', text: 'And a doc: "HOW TO HONEYPOT A BILLIONAIRE". Step 1 is highlighted.' },
     { who: 'hensen', emo: 'love', text: "Alice, what's all this?" },
-    { who: 'alice', emo: 'wink', text: 'Just a little surprise for you, daddy.' },
+    { who: 'alice', emo: 'wink', text: 'Just a little surprise for you <3' },
     { who: 'hensen', emo: 'love', text: "She's so supportive of my work." },
   ],
 };
@@ -43,6 +39,7 @@ export const JESSICA: Line[] = [
   { who: 'cfo', emo: 'hype', text: "It's called technical analysis." },
   { who: 'jessica', emo: 'friendly', text: "You're looking at a screenshot." },
   { who: 'cfo', emo: 'hype', text: 'The market is psychological.' },
+  { who: 'jessica', emo: 'friendly', text: "…Sure. I'll be by the water cooler if you need a witness." },
 ];
 
 /** Brad (CFO): optional chat, one small clue buried in finance-bro noise. */
@@ -57,28 +54,93 @@ export const BRAD: Line[] = [
 
 export const ALL_SEARCHED: Line[] = [
   { who: 'hensen', emo: 'smug', text: 'Three desks. Zero clues. My detective skills are mid.' },
-  { who: 'hensen', emo: 'smug', text: 'EVERYONE. BOARDROOM. NOW.' },
+  { who: 'hensen', emo: 'determined', text: 'Lawyers say I get ONE interrogation. Choose wisely, chat.' },
 ];
 
-/** Text on each suspect's monitor. */
 /** Brad's second monitor. */
 export const TICKER = ['$DOGEGPU', '▼ 40%'];
 
-export const MONITOR = { A: 'minecraft_rtx.cu', B: '→ SHENZHEN $800M', C: 'OPERATION STEAL BLACKWELL' };
+export type Suspect = 'kevin' | 'cfo' | 'alice';
+
+/** E on a suspect: free small talk, as often as you like. */
+export const CHAT: Record<Suspect, Line[]> = {
+  kevin: [{ who: 'kevin', emo: 'nervous', text: 'Is this about the GPUs or the Valorant tourney on the company card?' }],
+  cfo: [{ who: 'cfo', emo: 'hype', text: "If this is a layoff I'm shorting us. Respectfully." }],
+  alice: [{ who: 'alice', emo: 'smile', text: "I'm just happy to be in the room where the secrets are~" }],
+};
+
+/** Q on a suspect: the one interrogation is a Pokémon-style battle. `by` 'me' = Hensen attacks; dmg is % of HP. */
+export interface Move { by: 'me' | 'foe'; text: string; dmg: number; fx?: 'crit' | 'hearts' }
+export const BATTLE: Record<Suspect, { name: string; level: string; appear: string; moves: Move[]; faint: string }> = {
+  kevin: {
+    name: 'KEVIN', level: 'Lv.12', appear: 'A wild KEVIN appeared! He is holding a USB stick.',
+    moves: [
+      { by: 'me', text: 'HENSEN used "ARE YOU A CHINESE SPY?"!', dmg: 30 },
+      { by: 'foe', text: "KEVIN used SENATOR, I'M SINGAPOREAN! It's super effective!", dmg: 45 },
+      { by: 'me', text: "HENSEN used YOU'RE FIRED!", dmg: 100, fx: 'crit' },
+    ],
+    faint: 'KEVIN fainted! ...He was innocent. BRO WHAT 💀',
+  },
+  cfo: {
+    name: 'BRAD', level: 'Lv.69', appear: 'A wild BRAD appeared! He smells like Axe and leverage.',
+    moves: [
+      { by: 'me', text: 'HENSEN used AUDIT! Brad has never heard of it.', dmg: 25 },
+      { by: 'foe', text: 'BRAD used DIVERSIFIED PORTFOLIO, UNC! HENSEN is confused!', dmg: 35 },
+      { by: 'me', text: "HENSEN used YOU'RE FIRED!", dmg: 100, fx: 'crit' },
+    ],
+    faint: 'BRAD fainted! His $DOGEGPU bags fainted too. He was innocent.',
+  },
+  alice: {
+    name: 'ALICE', level: 'Lv.99', appear: 'A wild ALICE appeared! She is holding your GPU schematics.',
+    moves: [
+      { by: 'foe', text: "ALICE used <3! It's super effective!", dmg: 50, fx: 'hearts' },
+      { by: 'me', text: 'HENSEN used READ THE LAPTOP! It says OPERATION STEAL BLACKWELL.', dmg: 35 },
+      { by: 'me', text: "HENSEN used CAUGHT IN 4K!", dmg: 100, fx: 'crit' },
+    ],
+    faint: 'ALICE fainted! "It was never about the GPUs. It was about your heart."',
+  },
+};
+
+/** After beating Alice. */
+export const BATTLE_WIN = 'HENSEN caught the spy! Gained 9090 EXP! Hensen is still in love.';
+/** Wrong guess: the real spy takes the stage. */
+export const SPY_QUOTE = '"EZ CLAP. While you fired the wrong guy, I uploaded Blackwell to Shenzhen."';
+
+/** The ending card's subtitle. */
+export const VERDICT: Record<Suspect, string> = {
+  alice: 'You caught Alice in 4K. Blackwell stays home. Your heart does not.',
+  kevin: 'You fired Kevin (innocent). Alice escaped with Blackwell. Minecraft shaders will never recover.',
+  cfo: 'You fired Brad (innocent). Alice escaped with Blackwell. $DOGEGPU is down 100%.',
+};
+
+export const LABEL = {
+  chat: { kevin: 'Talk to Kevin', cfo: 'Talk to Brad', alice: 'Talk to Alice' },
+  interrogate: 'INTERROGATE',
+} as const;
+
+/** Alice's monitor. Every other computer shows the company logo. */
+export const ALICE_MONITOR = 'OPERATION STEAL BLACKWELL';
 
 export const DESK_LABEL = { A: "Search Kevin's desk (CTO)", B: "Search Brad's desk (CFO)", C: "Search Alice's desk (Assistant)" };
 
 export const OBJECTIVE = {
   start: 'FIND THE SPY. PROTECT THE GPUs. SAVE THE COMPANY.',
   progress: (n: number) => `Search the suspects' desks (${n}/3)`,
-  boardroom: 'Go to the BOARDROOM (door on the back wall)',
+  interrogate: "CHAT, WHO'S THE IMPOSTOR? Press Q on ONE suspect.",
 };
 
-export const BOARDROOM_SIGN = 'BOARDROOM';
 export const DOOR_LOCKED = 'No time for hallways!';
-export const BOARDROOM_LOCKED = 'Search all 3 desks first. Detective rules.';
+
+/** Pop-up text over heads. */
+export const FLOAT = {
+  impostor: "CHAT, WHO'S THE IMPOSTOR?",
+  arrested: '*arrested by security*',
+  win: 'SPY CAUGHT!',
+};
 
 /** Toasts are HTML: <b> is the title, <span> the subtitle. */
 export const TOAST = {
   mission: "<i>🕵️</i><b>SEARCH 3 DESKS</b><span>Walk to a green marker, press E</span>",
+  oneShot: '<i>❓</i><b>ONE INTERROGATION</b><span>Q on a suspect. Guess wrong and the spy wins.</span>',
+  saved: '<i>📈</i><b>SPY CAUGHT</b><span>NJDN to the moon. Analysts: "he did WHAT?"</span>',
 };

@@ -17,7 +17,7 @@
   <div id="hud" hidden>
     <div id="objective"></div>
     <div id="timer">0.0s</div>
-    <div id="hint"><kbd>WASD</kbd> move <kbd>E</kbd> interact <span id="mute">🔊 M</span></div>
+    <div id="hint"><kbd>WASD</kbd> move <kbd>E</kbd> interact <kbd>Q</kbd> interrogate <span id="mute">🔊 M</span></div>
   </div>
   <div id="stock" hidden>
     <div class="stk-head"><b>NJDN</b><span>NASDAQ · LIVE</span></div>
@@ -25,7 +25,7 @@
     <div id="stkChg">▲ 0.00%</div>
     <canvas id="stkSpark" width="200" height="44"></canvas>
   </div>
-  <div id="prompt" hidden><kbd>E</kbd><span></span></div>
+  <div id="prompt" hidden><kbd>E</kbd><span></span><b id="promptAlt" hidden><kbd>Q</kbd><i id="promptAltLabel"></i></b></div>
   <div id="floaters"></div>
   <div id="toasts" aria-live="polite"></div>
 
@@ -45,10 +45,10 @@
   <div id="wipe" hidden></div>
   <div id="battle" hidden>
     <div class="bt-stage">
-      <div class="bt-card foe"><div><b>ALICE</b><span>Lv.99</span></div><div class="hp"><i></i></div></div>
+      <div class="bt-card foe"><div><b id="btFoeName">ALICE</b><span id="btFoeLv">Lv.99</span></div><div class="hp"><i></i></div></div>
       <div class="bt-foe"><div class="plat"></div><img id="btAlice" alt="Alice" /></div>
       <div class="bt-player"><div class="plat"></div><img id="btHensen" alt="Hensen" /></div>
-      <div class="bt-card me"><div><b>HENSEN</b><span>Lv.62</span></div><div class="hp"><i></i></div><small>HP 61/62</small></div>
+      <div class="bt-card me"><div><b>HENSEN</b><span>Lv.62</span></div><div class="hp"><i></i></div><small id="btMeHp">HP 62/62</small></div>
       <div id="btReveal" hidden>
         <img id="btRevealImg" alt="Alice, revealed" />
         <h2 data-text="ALICE WAS THE ULTIMATE CORPORATE SPY ALL ALONG!">ALICE WAS THE ULTIMATE CORPORATE SPY ALL ALONG!</h2>
@@ -81,10 +81,10 @@
     <div class="end-card">
       <img id="endPortrait" alt="Hensen, defeated" />
       <div>
-        <h1>NJIDION HAS BEEN COMPROMISED</h1>
+        <h1 id="endTitle">NJIDION HAS BEEN COMPROMISED</h1>
         <p id="endVerdict"></p>
         <dl id="endStats"></dl>
-        <p><b>L + RATIO + SKILL ISSUE</b></p>
+        <p><b id="endTag">L + RATIO + SKILL ISSUE</b></p>
         <button id="replay">↻ REPLAY</button>
       </div>
     </div>

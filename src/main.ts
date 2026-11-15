@@ -47,11 +47,14 @@ async function travel(e: Exit) {
 
 const available = (t: Thing) => !(t.once && used.has(t)) && (t.when?.() ?? true);
 
-async function use(t: Thing) {
+async function use(t: Thing, alt = false) {
   game.busy = true;
-  if (t.once) used.add(t);
-  if (t.lines) await talk(t.lines);
-  await t.use?.();
+  if (alt) await t.alt!.use();
+  else {
+    if (t.once) used.add(t);
+    if (t.lines) await talk(t.lines);
+    await t.use?.();
+  }
   game.busy = false;
 }
 
@@ -85,7 +88,7 @@ function begin() {
 
 // ------------------------------------------------------------ input
 const keys = new Set<string>();
-let interact = false;
+let interact = false, interrogate = false;
 addEventListener('keydown', e => {
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   keys.add(e.code);
@@ -93,6 +96,7 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyM') $('mute').textContent = toggleMute() ? '🔇 M' : '🔊 M';
   if (game.state === 'START' && ['Enter', 'Space', 'KeyE'].includes(e.code)) begin();
   else if (['KeyE', 'Space', 'Enter'].includes(e.code) && !isDialogueOpen()) interact = true;
+  else if (e.code === 'KeyQ' && !isDialogueOpen()) interrogate = true;
 });
 addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => keys.clear());
@@ -134,10 +138,11 @@ function update(dt: number) {
   const near = free ? scene.things?.filter(available).map(t => ({ t, d: dist(player.pos, t.at) })).filter(n => n.d < REACH).sort((a, b) => a.d - b.d)[0]?.t : undefined;
   if (near) {
     const p = world.toScreen(near.at.x, 1.6, near.at.z);
-    showPrompt(near.label, p.x, p.y);
+    showPrompt(near.label, p.x, p.y, near.alt?.label);
     if (interact) void use(near);
+    else if (interrogate && near.alt) void use(near, true);
   } else showPrompt(null);
-  interact = false;
+  interact = interrogate = false;
 
   const t = performance.now() / 1000;
   for (const [thing, m] of here.markers) {
