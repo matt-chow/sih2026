@@ -324,19 +324,6 @@ export function chooseWhatMatters(): Promise<void> {
   });
 }
 
-/** Hensen's turn: the dodging choices, then love wins (for about a second). */
-export async function chooseAlice() {
-  await chooseWhatMatters();
-  $('choices').classList.add('chosen');
-  sfx.love();
-  hearts(...centerOf('btAlice'), 22, $('btFx'));
-  $('btHensen').classList.add('hop');
-  await say('HENSEN chose ALICE! ❤ True love is super effective!', 650);
-  $('choices').hidden = true;
-  $('choices').classList.remove('chosen');
-  $('btHensen').classList.remove('hop');
-}
-
 export async function crash() {
   const root = $('crash'), c = $<HTMLCanvasElement>('crashChart'), g = c.getContext('2d')!;
   root.hidden = false;
