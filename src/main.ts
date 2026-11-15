@@ -10,7 +10,7 @@ import { SCENES, START } from './scenes';
 import { $, floatText, isDialogueOpen, showPrompt, stock, wait } from './ui';
 import { SCREEN_RIGHT, SCREEN_UP } from './world';
 
-const PLAYER_R = 0.4, WALK = 4.6, RUN = 5.6, REACH = 2.2;
+const PLAYER_R = 0.4, WALK = 4.6, REACH = 2.2;
 
 // ------------------------------------------------------------ rooms
 // Every room is built once at boot; walking through a door swaps which one is in the scene graph.
@@ -87,7 +87,7 @@ function begin() {
 const keys = new Set<string>();
 let interact = false;
 addEventListener('keydown', e => {
-  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) && game.state !== 'BATTLE_CHOICE') e.preventDefault();
+  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   keys.add(e.code);
   if (e.repeat) return;
   if (e.code === 'KeyM') $('mute').textContent = toggleMute() ? '🔇 M' : '🔊 M';
@@ -113,12 +113,12 @@ const inside = (p: P2, b: Exit['area']) => p.x >= b.minX && p.x <= b.maxX && p.z
 // ------------------------------------------------------------ frame update
 function update(dt: number) {
   const { state } = game, { scene, room } = here;
-  if (state !== 'START' && state !== 'ALICE_REVEAL' && state !== 'ENDING') game.elapsed = (performance.now() - t0) / 1000;
+  if (state !== 'START' && state !== 'REVEAL' && state !== 'ENDING') game.elapsed = (performance.now() - t0) / 1000;
   $('timer').textContent = game.elapsed.toFixed(1) + 's';
 
   const free = !game.busy && state !== 'START' && state !== 'ENDING';
   if (free) {
-    const d = inputDir(), speed = state === 'CHASE' ? RUN : WALK;
+    const d = inputDir(), speed = WALK;
     player.pos.x += d.x * speed * dt;
     player.pos.z += d.z * speed * dt;
     resolveCircle(player.pos, PLAYER_R, room.colliders, scene.bounds);

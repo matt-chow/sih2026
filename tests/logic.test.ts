@@ -5,8 +5,8 @@ import { NEXT, resolveCircle, placeRect, followPath, type State } from '../src/l
 test('FSM visits every state once and loops back for replay', () => {
   const seen: State[] = [];
   let s: State = 'START';
-  for (let i = 0; i < 10; i++) { seen.push(s); s = NEXT[s]; }
-  assert.equal(new Set(seen).size, 10);
+  for (let i = 0; i < 5; i++) { seen.push(s); s = NEXT[s]; }
+  assert.equal(new Set(seen).size, 5);
   assert.equal(seen.at(-1), 'ENDING');
   assert.equal(NEXT.ENDING, 'EXPLORATION');
 });

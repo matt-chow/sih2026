@@ -4,10 +4,11 @@
 // Everything is procedural SVG unless an artist file with the matching name exists in
 // src/art/ (see src/art/README.md) — then that wins.
 
-export type CharId = 'hensen' | 'kevin' | 'alice' | 'rachel';
+export type CharId = 'hensen' | 'kevin' | 'cfo' | 'alice' | 'rachel';
 export const EMOTIONS = {
   hensen: ['neutral', 'smug', 'shocked', 'determined', 'love', 'defeated'],
   kevin: ['nervous', 'panic'],
+  cfo: ['hype', 'panic'],
   alice: ['smile', 'wink', 'dramatic', 'villain'],
   rachel: ['neutral', 'friendly'],
 } as const;
@@ -33,6 +34,8 @@ const PAL: Record<CharId, Pal> = {
   hensen: { skin: '#e2b48a', hair: '#2a2a2f', hairHi: '#8d8d98', top: '#141417', topHi: '#4a4a55', inner: '#25252b', leg: '#1c1c21', shoe: '#0b0b0b', iris: '#3b2a1e' },
   // muted blue-gray office shirt, slate tie
   kevin: { skin: '#f0c9a4', hair: '#6a4a2e', hairHi: '#8f6a44', top: '#8fa3ba', topHi: '#b9c7d6', inner: '#46566b', leg: '#3d4452', shoe: '#262626', iris: '#4a3a22' },
+  // crypto-bro CFO: green quarter-zip, gold chain, frosted tips
+  cfo: { skin: '#e8b48a', hair: '#e6c34a', hairHi: '#fff1a8', top: '#2d5a3c', topHi: '#3f7a52', inner: '#f5c542', leg: '#1f2a24', shoe: '#5a3a1a', iris: '#3a6ad9' },
   // ivory tailored blazer, black silk blouse, black trousers, black bob — the same outfit in every scene, villain included
   alice: { skin: '#f1d3b8', hair: '#3a2219', hairHi: '#7a4a32', top: '#ece4d6', topHi: '#fffaf1', inner: '#1b1a20', leg: '#1b1a20', shoe: '#0d0d10', iris: '#3a2618' },
   // rose blazer, ivory blouse, charcoal trousers, long auburn hair
@@ -55,6 +58,8 @@ const FACES: Record<string, Face> = {
   'hensen.defeated': { eyes: ['tears', 'tears'], brows: 'worried', mouth: 'wavy', sweat: true },
   'kevin.nervous': { eyes: ['normal', 'normal'], brows: 'worried', mouth: 'smallSmile', sweat: true },
   'kevin.panic': { eyes: ['wide', 'wide'], brows: 'worried', mouth: 'wavy', sweat: true },
+  'cfo.hype': { eyes: ['closed', 'closed'], brows: 'raised', mouth: 'grin', sparkle: true },
+  'cfo.panic': { eyes: ['wide', 'wide'], brows: 'worried', mouth: 'scream', sweat: true },
   'alice.smile': { eyes: ['normal', 'normal'], brows: 'neutral', mouth: 'smile', blush: true },
   'alice.wink': { eyes: ['normal', 'closed'], brows: 'raised', mouth: 'smile', blush: true, sparkle: true },
   'alice.dramatic': { eyes: ['normal', 'normal'], brows: 'raised', mouth: 'smirk', sparkle: true },
@@ -217,6 +222,12 @@ const ANIMS: Record<CharId, Record<string, { fps: number; poses: Pose[] }>> = {
     stumble: { fps: 1, poses: [{ arms: 'flail', leg: 1.3, eyes: 'wide', mouth: 2, lean: -12 }] },
     panic: { fps: 8, poses: [SHOCK, { ...SHOCK, mouth: 1, bob: -1.2 }] },
   },
+  cfo: {
+    idle: { fps: 2, poses: [{}, { bob: 0.6 }] },
+    walk: { fps: 8, poses: cycle(1) },
+    talk: { fps: 5, poses: [{ arms: 'talk', mouth: 1 }, { arms: 'talk', bob: 0.4 }] },
+    panic: { fps: 8, poses: [SHOCK, { ...SHOCK, mouth: 1, bob: -1.2 }] },
+  },
   alice: {
     idle: { fps: 2, poses: [{}, { bob: 0.6 }] },
     walk: { fps: 8, poses: cycle(0.8) },
@@ -230,7 +241,7 @@ const ANIMS: Record<CharId, Record<string, { fps: number; poses: Pose[] }>> = {
     talk: { fps: 5, poses: [{ arms: 'talk', mouth: 1 }, { arms: 'talk', bob: 0.4 }] },
   },
 };
-const MOVE: Record<CharId, string> = { hensen: 'walk', kevin: 'run', alice: 'walk', rachel: 'walk' };
+const MOVE: Record<CharId, string> = { hensen: 'walk', kevin: 'run', cfo: 'walk', alice: 'walk', rachel: 'walk' };
 
 function limb(pts: number[], color: string, w = 4) {
   const d = pts.reduce((acc, v, i) => acc + (i % 2 ? ',' : i ? ' L' : 'M') + v, '');

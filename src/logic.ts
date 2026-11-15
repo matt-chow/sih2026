@@ -1,20 +1,13 @@
 // Pure, DOM-free game logic. Imported by the game and by tests/logic.test.ts.
 
-export type State =
-  | 'START' | 'EXPLORATION' | 'SPY_REVEAL' | 'CHASE' | 'SPY_ESCAPE'
-  | 'ALICE_ENCOUNTER' | 'BATTLE_TRANSITION' | 'BATTLE_CHOICE' | 'ALICE_REVEAL' | 'ENDING';
+export type State = 'START' | 'EXPLORATION' | 'INTERROGATION' | 'REVEAL' | 'ENDING';
 
 // The only legal transitions. The story is linear; ENDING loops back for Replay.
 export const NEXT: Record<State, State> = {
   START: 'EXPLORATION',
-  EXPLORATION: 'SPY_REVEAL',
-  SPY_REVEAL: 'CHASE',
-  CHASE: 'SPY_ESCAPE',
-  SPY_ESCAPE: 'ALICE_ENCOUNTER',
-  ALICE_ENCOUNTER: 'BATTLE_TRANSITION',
-  BATTLE_TRANSITION: 'BATTLE_CHOICE',
-  BATTLE_CHOICE: 'ALICE_REVEAL',
-  ALICE_REVEAL: 'ENDING',
+  EXPLORATION: 'INTERROGATION',
+  INTERROGATION: 'REVEAL',
+  REVEAL: 'ENDING',
   ENDING: 'EXPLORATION',
 };
 
