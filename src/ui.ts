@@ -1,5 +1,5 @@
 // HTML/CSS overlays: HUD, interaction prompt, dialogue, toasts, stock ticker, floaters.
-import { portraitSrc, type CharId } from './art';
+import { portraitSrc, type CharId, type Emotion } from './art';
 import { sfx } from './audio';
 
 export const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -22,7 +22,8 @@ export function showPrompt(label: string | null, x = 0, y = 0) {
 }
 
 // ------------------------------------------------------------ dialogue
-export interface Line { who: CharId; emo: string; text: string }
+/** One dialogue line. `emo` must be one of that character's EMOTIONS in art.ts (type-checked). */
+export type Line = { [C in CharId]: { who: C; emo: Emotion<C>; text: string } }[CharId];
 const NAMES: Record<CharId, string> = { hensen: 'HENSEN JUANG', kevin: 'KEVIN · ACCOUNTING', alice: 'ALICE', aliceSpy: 'ALICE?!' };
 const SHAKY = new Set(['shocked', 'panic', 'evil']);
 let dialogueOpen = false;

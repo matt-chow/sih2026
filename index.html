@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NGIDIA: The 60-Second Disaster</title>
+  <title>Njidion: The 60-Second Disaster</title>
   <meta name="description" content="A 60-second corporate espionage comedy. Find the spy. Lose everything." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%2376b900'/><rect x='4' y='4' width='8' height='8' fill='%23111'/><rect x='6' y='6' width='4' height='4' fill='%2376b900'/></svg>" />
+  <link rel="icon" href="/src/art/njidion_logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
@@ -20,7 +20,7 @@
     <div id="hint"><kbd>WASD</kbd> move <kbd>E</kbd> interact <span id="mute">🔊 M</span></div>
   </div>
   <div id="stock" hidden>
-    <div class="stk-head"><b>NGDA</b><span>NASDAQ · LIVE</span></div>
+    <div class="stk-head"><b>NJDN</b><span>NASDAQ · LIVE</span></div>
     <div id="stkPrice">$1000.00</div>
     <div id="stkChg">▲ 0.00%</div>
     <canvas id="stkSpark" width="200" height="44"></canvas>
@@ -41,6 +41,7 @@
   </div>
 
   <!-- Battle -->
+  <div id="fade"></div>
   <div id="wipe" hidden></div>
   <div id="battle" hidden>
     <div class="bt-stage">
@@ -55,7 +56,7 @@
     </div>
     <div id="btBox" class="bt-box"><p id="btText"></p></div>
     <div id="choices" role="group" aria-label="What matters most to you?" hidden>
-      <button data-k="ngidia" class="ch ngidia">NGIDIA</button>
+      <button data-k="njidion" class="ch njidion">NJIDION</button>
       <button data-k="family" class="ch family">Loving Family</button>
       <button data-k="america" class="ch america">America</button>
       <button data-k="alice" class="ch alice">Alice <span aria-hidden="true">❤</span></button>
@@ -68,11 +69,11 @@
   <div id="crash" hidden>
     <div class="crash-head">
       <span class="badge">BREAKING</span>
-      <div><b>NGDA</b> <span id="crashPrice">$970.00</span> <span id="crashPct">▼ 3.00%</span></div>
+      <div><b>NJDN</b> <span id="crashPrice">$970.00</span> <span id="crashPct">▼ 3.00%</span></div>
     </div>
     <canvas id="crashChart"></canvas>
     <div class="stamp">NEGATIVE TERRITORY</div>
-    <div class="ticker"><span>NGIDIA SHARES NOW COST MONEY TO OWN · ANALYSTS: "WE HAVE NEVER SEEN A STOCK DO THIS" · CEO SEEN HUGGING A SERVER RACK · TRADING HALTED · NGIDIA SHARES NOW COST MONEY TO OWN · ANALYSTS: "WE HAVE NEVER SEEN A STOCK DO THIS" ·</span></div>
+    <div class="ticker"><span>NJIDION SHARES NOW COST MONEY TO OWN · ANALYSTS: "WE HAVE NEVER SEEN A STOCK DO THIS" · CEO SEEN HUGGING A SERVER RACK · TRADING HALTED · NJIDION SHARES NOW COST MONEY TO OWN · ANALYSTS: "WE HAVE NEVER SEEN A STOCK DO THIS" ·</span></div>
   </div>
 
   <!-- Ending -->
@@ -81,7 +82,7 @@
       <img id="endPortrait" alt="Hensen, defeated" />
       <div>
         <h1>HENSEN BLACKED OUT!</h1>
-        <p>NGIDIA is now worth less than a used leather jacket.</p>
+        <p>Njidion is now worth less than a used leather jacket.</p>
         <dl id="endStats"></dl>
         <button id="replay">↻ REPLAY</button>
       </div>
@@ -91,9 +92,9 @@
   <!-- Title -->
   <div id="title">
     <div class="title-card">
-      <div class="logo"><i></i>NGIDIA</div>
+      <img class="logo" src="/src/art/njidion_logo.png" alt="Njidion" />
       <h1>THE 60-SECOND<br />DISASTER</h1>
-      <p>You are <b>Hensen Juang</b>, CEO of NGIDIA.<br />Someone in this office is leaking company secrets.</p>
+      <p>You are <b>Hensen Juang</b>, CEO of Njidion.<br />Someone in this office is leaking company secrets.</p>
       <button id="start">PRESS ENTER</button>
       <div class="controls"><kbd>WASD</kbd> move &nbsp; <kbd>E</kbd> interact / advance &nbsp; <kbd>M</kbd> mute</div>
     </div>

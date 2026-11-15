@@ -10,3 +10,5 @@ Anything missing falls back to the procedural SVG art in `src/art.ts`.
 
 Ids: `hensen`, `kevin`, `alice`, `aliceSpy`.
 Emotions — hensen: `neutral smug shocked love defeated`; kevin: `panic`; alice: `smile wink`; aliceSpy: `evil`.
+
+`njidion_logo.png` is the company logo (title screen, favicon, office and hallway walls). Replace the file to change it everywhere.
