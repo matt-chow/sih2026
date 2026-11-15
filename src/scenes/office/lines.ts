@@ -2,7 +2,7 @@
 import type { Line } from '../../ui';
 
 export const PHONE = {
-  title: 'Phone', open: 'Phone · P', close: 'Close · P', back: 'Home',
+  title: 'Phone', open: 'P', openLabel: 'Open phone (P)', close: 'Close · P', back: 'Home',
   company: 'Njidion', stock: 'NJDN · Simulated', chart: 'Njidion share price history',
   from: 'Office of the President',
   subject: 'RE: RE: URGENT / national security? / pls open plzplz',
@@ -16,6 +16,7 @@ SUBJECT: RE: RE: URGENT / national security? / pls open plzplz
 bestie,
 
 your office has spies tryna steal confidential chip designs. investigate quietly.
+
 (your company is lowk carrying the economy so lock in.)
 
 regards,

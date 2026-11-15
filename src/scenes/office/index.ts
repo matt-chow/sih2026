@@ -6,7 +6,7 @@ import { setupBattle } from '../../battle';
 import { above, game, player, sheets, talk } from '../../game';
 import type { Box, P2 } from '../../logic';
 import { M, type Room, type Scene, type Thing } from '../../scene';
-import { hearts, setObjective, toast, wait } from '../../ui';
+import { hearts, setObjective, wait } from '../../ui';
 import type { Actor } from '../../world';
 import * as L from './lines';
 import { phone } from './phone';

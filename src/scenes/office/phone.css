@@ -41,7 +41,10 @@
 .phone-mail { overflow-y: auto; min-height: 0; flex: 1; padding: 3px 8px; scrollbar-color: var(--green) #202a2d; }
 .phone-mail p { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 17px; line-height: 1.6; margin: 8px 0 18px; }
 #phone #phone-investigate { background: var(--green); color: var(--ink); font-weight: 700; flex-shrink: 0; }
-#phone-launcher { position: absolute; bottom: 58px; right: 20px; pointer-events: auto; color: var(--green-hi); background: var(--panel); border: 1px solid var(--green); padding: 10px 16px; border-radius: 10px; }
+#phone-launcher { position: absolute; bottom: 58px; right: 20px; pointer-events: auto; color: var(--green-hi); background: #10151840; border: 1px solid #ffffff12; padding: 4px 6px; border-radius: 10px; }
+#phone-launcher span { display: block; margin-top: 2px; font-size: 52px; line-height: 1.2; }
+#phone-launcher:hover { background: #10151870; border-color: #76b90055; }
+#phone-launcher:focus-visible { outline: 2px solid var(--green-hi); outline-offset: 3px; }
 #phone.lowering { animation: phoneLower 0.22s ease-in forwards; }
 @keyframes phoneRaise { from { opacity: 0; transform: translateY(70px); } }
 @keyframes phoneLower { to { opacity: 0; transform: translateY(90px); } }
