@@ -1,5 +1,5 @@
-// Final act: RPG wipe, parody battle, evasive choices, betrayal, stock crash, ending.
-import { frameURL, portraitSrc, type Sheets } from './art';
+// Final act: RPG wipe, parody duel (scripted by the scene), spy reveal, stock crash, ending.
+import { frameURL, portraitSrc, type CharId, type Sheets } from './art';
 import { sfx } from './audio';
 import { placeRect, type Rect } from './logic';
 import { $, wait, hearts, stock, formatPrice, OPEN_PRICE, PortraitAnim } from './ui';
@@ -55,11 +55,14 @@ async function say(text: string, hold = 900) {
   await wait(hold);
 }
 
-// battle stand-ins, Alice mirrored to face left; her villain frame is the same outfit in a new pose
+// battle stand-ins; foes are mirrored to face left
 let frames: Record<'hensen' | 'shocked' | 'alice' | 'dramatic' | 'villain', string>;
 let revealAnim: PortraitAnim;
+let allSheets: Sheets;
+const hp = { me: 100, foe: 100 };
 
 export function setupBattle(sheets: Sheets) {
+  allSheets = sheets;
   frames = {
     hensen: frameURL(sheets.hensen, 'idle'),
     shocked: frameURL(sheets.hensen, 'shocked'),
@@ -82,19 +85,96 @@ export function resetBattle() {
   revealAnim.stop();
   $<HTMLImageElement>('btHensen').src = frames.hensen;
   $<HTMLImageElement>('btAlice').src = frames.dramatic;
+  for (const id of ['btHensen', 'btAlice']) $(id).className = '';
+  $('btFx').replaceChildren();
+  hp.me = hp.foe = 100;
+  drawHp();
   document.querySelectorAll('.quip').forEach(q => q.remove());
 }
 
-export async function battleIntro() {
+// ------------------------------------------------------------ duel primitives (the script lives in the scene)
+type Side = 'me' | 'foe';
+const img = (side: Side) => $<HTMLImageElement>(side === 'me' ? 'btHensen' : 'btAlice');
+const restart = (el: HTMLElement, cls: string) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+
+function drawHp() {
+  for (const side of ['me', 'foe'] as const) {
+    const bar = document.querySelector<HTMLElement>(`.bt-card.${side} .hp i`)!;
+    bar.style.width = hp[side] + '%';
+    bar.style.background = hp[side] > 50 ? '#3fcf55' : hp[side] > 20 ? '#f2c23a' : '#e8413a';
+  }
+  $('btMeHp').textContent = `HP ${Math.ceil(hp.me * 0.62)}/62`;
+}
+
+/** Big text slammed over the stage, e.g. 'CRITICAL HIT!'. */
+export function battlePop(text: string) {
+  const el = document.createElement('div');
+  el.className = 'bt-pop';
+  el.textContent = text;
+  $('btFx').append(el);
+  setTimeout(() => el.remove(), 1300);
+}
+
+/** Wipe into the battle screen facing `foe` (a character id), with its name card. */
+export async function startDuel(foe: CharId, name: string, level: string) {
+  $<HTMLImageElement>('btAlice').src = frameURL(allSheets[foe], 'idle', 0, true);
+  $('btAlice').setAttribute('alt', name);
+  $('btFoeName').textContent = name;
+  $('btFoeLv').textContent = level;
+  hp.me = hp.foe = 100;
+  drawHp();
+  await battleTransition();
   sfx.battleStart();
   $('battle').classList.add('in');
-  await say('A wild ALICE appeared!', 700);
-  $<HTMLImageElement>('btAlice').src = frames.alice;
-  $('btHensen').classList.add('hit');
-  hearts(...centerOf('btHensen'), 6, $('btFx'));
-  sfx.romance();
-  await say('ALICE used BAT EYELASHES! It\'s super effective!', 800);
-  $('btHensen').classList.remove('hit');
+}
+
+export const battleSay = say;
+
+/** `by` lunges, the other side flashes and loses `dmg` HP. fx: 'crit' shakes the screen, 'hearts' is rizz damage. */
+export async function attack(by: Side, text: string, dmg: number, fx?: 'crit' | 'hearts') {
+  const target: Side = by === 'me' ? 'foe' : 'me';
+  restart(img(by), by === 'me' ? 'lungeMe' : 'lungeFoe');
+  void say(text, 0);
+  await wait(320);
+  restart(img(target), 'hit');
+  sfx.stumble();
+  if (fx === 'hearts') { sfx.romance(); hearts(...centerOf(img(target).id), 14, $('btFx')); }
+  if (fx === 'crit') { sfx.boom(); restart($('battle'), 'quake'); battlePop('CRITICAL HIT!'); }
+  hp[target] = Math.max(0, hp[target] - dmg);
+  drawHp();
+  await wait(Math.max(1500, text.length * 18 + 900));
+}
+
+/** The foe drops off its platform. */
+export async function faint(text: string) {
+  img('foe').classList.add('faint');
+  sfx.defeat();
+  await say(text, 1300);
+}
+
+/** Wrong guess: glitch, Alice takes the foe platform in villain form, the big reveal banner. */
+export async function spyReveal(quote: string) {
+  const battle = $('battle'), foe = img('foe');
+  sfx.glitch();
+  battle.classList.add('glitch');
+  await wait(650);
+  foe.className = '';
+  foe.src = frames.villain;
+  $('btFoeName').textContent = 'ALICE';
+  $('btFoeLv').textContent = 'Lv.99';
+  hp.foe = 100;
+  drawHp();
+  $<HTMLImageElement>('btHensen').src = frames.shocked;
+  battle.classList.remove('glitch');
+  battle.classList.add('evil');
+  sfx.sting();
+  revealAnim.show('alice', 'villain');
+  $('btReveal').hidden = false;
+  await say('ALICE used INSIDER TRADING!', 1500);
+  $('btText').textContent = quote;
+  revealAnim.talk(true);
+  await wait(2200);
+  revealAnim.stop();
 }
 
 function centerOf(id: string): [number, number] {
@@ -244,40 +324,6 @@ export function chooseWhatMatters(): Promise<void> {
   });
 }
 
-// ------------------------------------------------------------ betrayal
-export async function betrayal() {
-  const battle = $('battle'), alice = $<HTMLImageElement>('btAlice');
-  // 1. love wins (for about a second)
-  $('choices').classList.add('chosen');
-  sfx.love();
-  hearts(...centerOf('btAlice'), 22, $('btFx'));
-  $('btHensen').classList.add('hop');
-  await say('HENSEN chose ALICE! ❤ True love is super effective!', 650);
-  $('choices').hidden = true;
-  $('choices').classList.remove('chosen');
-  $('btHensen').classList.remove('hop');
-
-  // 2. glitch + reveal
-  sfx.glitch();
-  battle.classList.add('glitch');
-  await wait(650);
-  alice.src = frames.villain;
-  $<HTMLImageElement>('btHensen').src = frames.shocked;
-  battle.classList.remove('glitch');
-  battle.classList.add('evil');
-  sfx.sting();
-  revealAnim.show('alice', 'villain');
-  $('btReveal').hidden = false;
-  await say('ALICE used INSIDER TRADING!', 1700);
-  $('btText').textContent = '"Thanks for the root password, darling~ 💚"';
-  revealAnim.talk(true);
-  await wait(1300);
-  revealAnim.stop();
-
-  // 3. the crash
-  await crash();
-}
-
 export async function crash() {
   const root = $('crash'), c = $<HTMLCanvasElement>('crashChart'), g = c.getContext('2d')!;
   root.hidden = false;
@@ -335,19 +381,21 @@ export async function crash() {
 }
 
 // ------------------------------------------------------------ ending
-export function showEnding(seconds: number, verdict: string, onReplay: () => void) {
-  sfx.defeat();
+export function showEnding(seconds: number, verdict: string, won: boolean, onReplay: () => void) {
+  if (won) sfx.achievement(); else sfx.defeat();
   $('crash').hidden = true;
   $('crash').classList.remove('negative');
   $('battle').hidden = true;
   const el = $('ending');
   el.hidden = false;
-  $<HTMLImageElement>('endPortrait').src = portraitSrc('hensen', 'defeated');
+  $<HTMLImageElement>('endPortrait').src = portraitSrc('hensen', won ? 'smug' : 'defeated');
+  $('endTitle').textContent = won ? 'SPY CAUGHT. NJIDION IS SAVED' : 'NJIDION HAS BEEN COMPROMISED';
+  $('endTag').textContent = won ? 'W + RIZZ + AURA' : 'L + RATIO + SKILL ISSUE';
   $('endVerdict').textContent = verdict;
   $('endStats').innerHTML = `
-    <dt>GPU architecture leaked</dt><dd class="neg">100%</dd>
-    <dt>CEO IQ</dt><dd>3</dd>
-    <dt>Company valuation</dt><dd class="neg">$0</dd>
+    <dt>GPU architecture leaked</dt><dd${won ? '>0%' : ' class="neg">100%'}</dd>
+    <dt>CEO IQ</dt><dd>${won ? '4 (personal best)' : '3'}</dd>
+    <dt>Company valuation</dt><dd${won ? '>$5 trillion' : ' class="neg">$0'}</dd>
     <dt>Disaster duration</dt><dd>${seconds.toFixed(1)}s</dd>`;
   const btn = $<HTMLButtonElement>('replay');
   btn.onclick = () => { sfx.select(); onReplay(); };

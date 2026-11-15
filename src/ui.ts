@@ -13,11 +13,13 @@ export function setObjective(text: string) {
   el.classList.add('pop');
 }
 
-export function showPrompt(label: string | null, x = 0, y = 0) {
+export function showPrompt(label: string | null, x = 0, y = 0, alt?: string) {
   const el = $('prompt');
   el.hidden = !label;
   if (!label) return;
   el.querySelector('span')!.textContent = label;
+  $('promptAlt').hidden = !alt;
+  $('promptAltLabel').textContent = alt ?? '';
   el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
 }
 
