@@ -15,7 +15,7 @@ const DOOR: P2 = { x: 9, z: -8 };
 const BOARD_DOOR: P2 = { x: -1, z: -8 };
 const DESK_X = { A: -3.6, B: 0, C: 3.6 };
 
-let kevin: Actor, cfo: Actor, alice: Actor, rachel: Actor;
+let kevin: Actor, cfo: Actor, alice: Actor, jessica: Actor;
 let briefed = false, searched = 0;
 
 // ------------------------------------------------------------ story beats
@@ -93,6 +93,21 @@ function build(room: Room) {
     const words = L.MONITOR[id].split(' ');
     words.forEach((w, i) => g.fillText(w, 256, 145 + (i - (words.length - 1) / 2) * 56));
   }, DESK_X[id], 1.29, -0.055);
+  // Brad's finance setup: crashing ticker on a second monitor, oat latte, quarterly reports
+  room.box(M.black, 0.06, 0.2, 0.06, 0.82, 0.78, -0.1);
+  room.box(M.black, 0.52, 0.36, 0.05, 0.82, 0.95, -0.1);
+  room.sign(0.46, 0.3, g => {
+    g.fillStyle = '#12060a'; g.fillRect(0, 0, 512, 334);
+    g.strokeStyle = '#ff3b4e'; g.lineWidth = 12; g.beginPath(); g.moveTo(20, 60);
+    for (const [x, y] of [[90, 90], [140, 70], [210, 150], [270, 130], [340, 220], [400, 200], [490, 300]]) g.lineTo(x, y);
+    g.stroke();
+    g.fillStyle = '#ff3b4e'; g.font = 'bold 54px ui-monospace,monospace'; g.textAlign = 'right';
+    g.fillText(L.TICKER[0], 490, 70); g.fillText(L.TICKER[1], 490, 130);
+  }, 0.82, 1.13, -0.07);
+  room.at(new THREE.CylinderGeometry(0.05, 0.04, 0.14, 10), M.white, -0.8, 0.85, 0.4);
+  room.at(new THREE.CylinderGeometry(0.052, 0.048, 0.05, 10), M.wood, -0.8, 0.85, 0.4);
+  room.box(M.white, 0.3, 0.05, 0.38, -0.72, 0.78, -0.05);
+  room.box(M.red, 0.28, 0.02, 0.36, -0.72, 0.83, -0.05);
   // CEO corner
   room.box(M.black, 3, 0.1, 1.4, -8.6, 0.76, -5.3);
   room.box(M.black, 2.9, 0.76, 0.12, -8.6, 0, -4.7);
@@ -138,8 +153,8 @@ function build(room: Room) {
   kevin = room.actor('kevin', DESK_X.A + 1.5, 1.4, 2.0);
   cfo = room.actor('cfo', DESK_X.B + 1.5, 1.4);
   alice = room.actor('alice', DESK_X.C + 1.5, 1.4);
-  rachel = room.actor('rachel', 10.2, -2.4);
-  rachel.face(-1);
+  jessica = room.actor('jessica', 10.2, -2.4);
+  jessica.face(-1);
   setupBattle(sheets); // resetBattle() needs it even though the battle screen is unused
 }
 
@@ -157,7 +172,8 @@ export default {
   build,
   things: [
     desk('A'), desk('B'), desk('C'),
-    { get at() { return rachel.pos; }, label: 'Talk to Rachel', lines: L.RACHEL, when: () => game.state === 'EXPLORATION' },
+    { get at() { return jessica.pos; }, label: 'Talk to Jessica', lines: L.JESSICA, when: () => game.state === 'EXPLORATION' },
+    { get at() { return cfo.pos; }, label: 'Talk to Brad', lines: L.BRAD, when: () => game.state === 'EXPLORATION' && briefed },
   ],
   exits: [{
     area: { minX: 8.2, maxX: 9.8, minZ: -8, maxZ: -7.3 },

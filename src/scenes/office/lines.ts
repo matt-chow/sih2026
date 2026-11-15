@@ -35,11 +35,24 @@ export const DESKS: Record<'A' | 'B' | 'C', Line[]> = {
   ],
 };
 
-/** Rachel: an ordinary coworker who has noticed everything and reported nothing. */
-export const RACHEL: Line[] = [
-  { who: 'rachel', emo: 'neutral', text: "Morning, Mr. Juang. Alice has been photocopying the GPU schematics since 6 a.m." },
+/** Jessica: an ordinary coworker who has noticed everything and reported nothing. Brad chimes in from his desk. */
+export const JESSICA: Line[] = [
+  { who: 'jessica', emo: 'neutral', text: "Morning, Mr. Juang. Alice has been photocopying the GPU schematics since 6 a.m." },
   { who: 'hensen', emo: 'smug', text: 'Photocopying my genius. She is a fan.' },
-  { who: 'rachel', emo: 'friendly', text: "…Sure. I'll be by the water cooler if you need a witness." },
+  { who: 'jessica', emo: 'neutral', text: "Also, Brad's been staring at the stock market for six hours." },
+  { who: 'cfo', emo: 'hype', text: "It's called technical analysis." },
+  { who: 'jessica', emo: 'friendly', text: "You're looking at a screenshot." },
+  { who: 'cfo', emo: 'hype', text: 'The market is psychological.' },
+];
+
+/** Brad (CFO): optional chat, one small clue buried in finance-bro noise. */
+export const BRAD: Line[] = [
+  { who: 'hensen', emo: 'neutral', text: 'Brad. Have you seen anything suspicious?' },
+  { who: 'cfo', emo: 'panic', text: "Bro, the only suspicious thing is my portfolio. Down 40%. I'm actually cooked." },
+  { who: 'hensen', emo: 'neutral', text: 'Anyone acting weird?' },
+  { who: 'cfo', emo: 'hype', text: 'Alice asked about chip designs. Thought she was doing due diligence.' },
+  { who: 'hensen', emo: 'shocked', pose: 'shocked', text: "And you didn't question that?" },
+  { who: 'cfo', emo: 'hype', text: 'I was locked in on the grindset.' },
 ];
 
 export const ALL_SEARCHED: Line[] = [
@@ -48,6 +61,9 @@ export const ALL_SEARCHED: Line[] = [
 ];
 
 /** Text on each suspect's monitor. */
+/** Brad's second monitor. */
+export const TICKER = ['$DOGEGPU', '▼ 40%'];
+
 export const MONITOR = { A: 'minecraft_rtx.cu', B: '→ SHENZHEN $800M', C: 'OPERATION STEAL BLACKWELL' };
 
 export const DESK_LABEL = { A: "Search Kevin's desk (CTO)", B: "Search Brad's desk (CFO)", C: "Search Alice's desk (Assistant)" };

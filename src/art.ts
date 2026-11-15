@@ -4,13 +4,13 @@
 // Everything is procedural SVG unless an artist file with the matching name exists in
 // src/art/ (see src/art/README.md) — then that wins.
 
-export type CharId = 'hensen' | 'kevin' | 'cfo' | 'alice' | 'rachel';
+export type CharId = 'hensen' | 'kevin' | 'cfo' | 'alice' | 'jessica';
 export const EMOTIONS = {
   hensen: ['neutral', 'smug', 'shocked', 'determined', 'love', 'defeated'],
   kevin: ['nervous', 'panic'],
   cfo: ['hype', 'panic'],
   alice: ['smile', 'wink', 'dramatic', 'villain'],
-  rachel: ['neutral', 'friendly'],
+  jessica: ['neutral', 'friendly'],
 } as const;
 export type Emotion<C extends CharId = CharId> = (typeof EMOTIONS)[C][number];
 
@@ -35,11 +35,11 @@ const PAL: Record<CharId, Pal> = {
   // muted blue-gray office shirt, slate tie
   kevin: { skin: '#f0c9a4', hair: '#6a4a2e', hairHi: '#8f6a44', top: '#8fa3ba', topHi: '#b9c7d6', inner: '#46566b', leg: '#3d4452', shoe: '#262626', iris: '#4a3a22' },
   // crypto-bro CFO: green quarter-zip, gold chain, frosted tips
-  cfo: { skin: '#e8b48a', hair: '#e6c34a', hairHi: '#fff1a8', top: '#2d5a3c', topHi: '#3f7a52', inner: '#f5c542', leg: '#1f2a24', shoe: '#5a3a1a', iris: '#3a6ad9' },
+  cfo: { skin: '#e8b48a', hair: '#6b4226', hairHi: '#a8744a', top: '#1f2d4d', topHi: '#3a4f80', inner: '#f7f7f4', leg: '#25272e', shoe: '#f2f2ef', iris: '#5a3a22' },
   // ivory tailored blazer, black silk blouse, black trousers, black bob — the same outfit in every scene, villain included
   alice: { skin: '#f1d3b8', hair: '#3a2219', hairHi: '#7a4a32', top: '#ece4d6', topHi: '#fffaf1', inner: '#1b1a20', leg: '#1b1a20', shoe: '#0d0d10', iris: '#3a2618' },
   // rose blazer, ivory blouse, charcoal trousers, long auburn hair
-  rachel: { skin: '#f2cdb0', hair: '#b8442f', hairHi: '#dc6a4a', top: '#b9506f', topHi: '#d97c97', inner: '#f6efe7', leg: '#2e2e3c', shoe: '#5a1f33', iris: '#2f8a57' },
+  jessica: { skin: '#f2cdb0', hair: '#b8442f', hairHi: '#dc6a4a', top: '#b9506f', topHi: '#d97c97', inner: '#f6efe7', leg: '#2e2e3c', shoe: '#5a1f33', iris: '#2f8a57' },
 };
 
 // ---------------------------------------------------------------- portraits
@@ -64,8 +64,8 @@ const FACES: Record<string, Face> = {
   'alice.wink': { eyes: ['normal', 'closed'], brows: 'raised', mouth: 'smile', blush: true, sparkle: true },
   'alice.dramatic': { eyes: ['normal', 'normal'], brows: 'raised', mouth: 'smirk', sparkle: true },
   'alice.villain': { eyes: ['narrow', 'narrow'], brows: 'angry', mouth: 'evilGrin', shadow: true },
-  'rachel.neutral': { eyes: ['normal', 'normal'], brows: 'neutral', mouth: 'smallSmile' },
-  'rachel.friendly': { eyes: ['normal', 'normal'], brows: 'raised', mouth: 'smile', blush: true },
+  'jessica.neutral': { eyes: ['normal', 'normal'], brows: 'neutral', mouth: 'smallSmile' },
+  'jessica.friendly': { eyes: ['normal', 'normal'], brows: 'raised', mouth: 'smile', blush: true },
 };
 
 function eye(kind: EyeKind, x: number, y: number, p: Pal, lashes: boolean): string {
@@ -124,12 +124,12 @@ function portraitSVG(id: CharId, emotion: string, open: number, blink: boolean):
   const p = PAL[id];
   const f = FACES[`${id}.${emotion}`];
   const eyes = f.eyes.map(e => (blink && BLINKS.has(e) ? 'closed' : e));
-  const fem = id === 'alice' || id === 'rachel';
+  const fem = id === 'alice' || id === 'jessica';
   const parts: string[] = [];
 
   // back hair
   if (id === 'alice') parts.push(`<path d="M112,250 C100,118 182,88 250,92 C330,92 404,128 392,262 C400,330 404,380 384,420 L318,420 C330,380 330,350 330,330 L170,330 C170,350 170,380 182,420 L116,420 C96,380 100,330 112,250Z" fill="${p.hair}" stroke="${OUT}" stroke-width="6"/>`);
-  if (id === 'rachel') parts.push(`<path d="M112,250 C100,118 182,88 250,92 C330,92 404,128 392,262 C402,390 424,480 404,600 L318,600 C336,470 330,390 330,330 L170,330 C170,390 164,470 182,600 L96,600 C76,480 100,390 112,250Z" fill="${p.hair}" stroke="${OUT}" stroke-width="6"/>`);
+  if (id === 'jessica') parts.push(`<path d="M112,250 C100,118 182,88 250,92 C330,92 404,128 392,262 C402,390 424,480 404,600 L318,600 C336,470 330,390 330,330 L170,330 C170,390 164,470 182,600 L96,600 C76,480 100,390 112,250Z" fill="${p.hair}" stroke="${OUT}" stroke-width="6"/>`);
 
   // body
   parts.push(`<rect x="214" y="340" width="72" height="100" fill="${p.skin}" stroke="${OUT}" stroke-width="6"/>`);
@@ -235,13 +235,13 @@ const ANIMS: Record<CharId, Record<string, { fps: number; poses: Pose[] }>> = {
     dramatic: { fps: 1, poses: [{ arms: 'point', leg: 0.9, mouth: 1, lean: 4 }] },
     villain: { fps: 1, poses: [{ arms: 'cross', eyes: 'narrow', leg: 0.5 }] },
   },
-  rachel: {
+  jessica: {
     idle: { fps: 2, poses: [{}, { bob: 0.6 }] },
     walk: { fps: 8, poses: cycle(0.8) },
     talk: { fps: 5, poses: [{ arms: 'talk', mouth: 1 }, { arms: 'talk', bob: 0.4 }] },
   },
 };
-const MOVE: Record<CharId, string> = { hensen: 'walk', kevin: 'run', cfo: 'walk', alice: 'walk', rachel: 'walk' };
+const MOVE: Record<CharId, string> = { hensen: 'walk', kevin: 'run', cfo: 'walk', alice: 'walk', jessica: 'walk' };
 
 function limb(pts: number[], color: string, w = 4) {
   const d = pts.reduce((acc, v, i) => acc + (i % 2 ? ',' : i ? ' L' : 'M') + v, '');
@@ -265,17 +265,18 @@ function spriteSVG(id: CharId, p: Pose): string {
   const c = PAL[id];
   const leg = p.leg ?? 0, arms = p.arms ?? 'swing', eyes = p.eyes ?? 'open', m = p.mouth ?? 0;
   const [back, front] = armPts(arms, p.arm ?? 0);
+  const sleeve = id === 'cfo' ? c.inner : c.top; // Brad's vest is sleeveless
   const hand = (pts: number[]) => `<circle cx="${pts.at(-2)}" cy="${pts.at(-1)}" r="1.9" fill="${c.skin}" stroke="${OUT}" stroke-width="1"/>`;
   const shoe = (x: number) => `<ellipse cx="${x + 1.6}" cy="89.6" rx="4.2" ry="2.1" fill="${c.shoe}" stroke="${OUT}" stroke-width="1"/>`;
   const s: string[] = [`<g transform="rotate(${p.lean ?? 0} 32 90)">`];
 
   if (id === 'alice') s.push(`<path d="M27,9 C22,14 22,22 24,26 L31,25.5 C29,21 29,16 30,12Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.2"/>`);
-  if (id === 'rachel') s.push(`<path d="M27,9 C22,16 22,30 25,38 L32,37 C29,30 29,20 30,12Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.2"/>`);
+  if (id === 'jessica') s.push(`<path d="M27,9 C22,16 22,30 25,38 L32,37 C29,30 29,20 30,12Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.2"/>`);
   // legs, back then front
   s.push(limb([30, 51, 30 - leg * 6, 88], c.leg, 4.6), shoe(30 - leg * 6));
   s.push(limb([34, 51, 34 + leg * 6, 88], c.leg, 4.6), shoe(34 + leg * 6));
   s.push(`<g transform="translate(0,${p.bob ?? 0})">`);
-  if (arms !== 'cross') s.push(limb(back, c.top, 3.6), hand(back));
+  if (arms !== 'cross') s.push(limb(back, sleeve, 3.6), hand(back));
 
   // torso + outfit
   s.push(`<path d="M25,25 Q32,22.5 40,25 L41,53 L24.5,53Z" fill="${c.top}" stroke="${OUT}" stroke-width="1.2" stroke-linejoin="round"/>`);
@@ -284,7 +285,9 @@ function spriteSVG(id: CharId, p: Pose): string {
     <path d="M38.5,28 L39.2,46" stroke="${c.topHi}" stroke-width="1" opacity=".8"/><circle cx="37.6" cy="31" r=".9" fill="#76b900"/>`);
   if (id === 'kevin') s.push(`<path d="M32,24.5 L34.5,24.5 L35,39 L33.2,41 L31.5,39Z" fill="${c.inner}" stroke="${OUT}" stroke-width=".6"/>
     <rect x="36.5" y="31" width="3.4" height="4.4" fill="#fff" stroke="${OUT}" stroke-width=".5"/><rect x="37.1" y="31.6" width="1.4" height="1.4" fill="#76b900"/><path d="M25,50.5 H41" stroke="${OUT}" stroke-width="1.4"/>`);
-  if (id === 'alice' || id === 'rachel') s.push(`<path d="M30,24 L33.5,37 L37,24Z" fill="${c.inner}"/><path d="M29.5,24.5 L33,36 M37.5,24.5 L34,36" stroke="${c.topHi}" stroke-width="1.1"/><path d="M25,45 Q33,46.5 41,45" stroke="${OUT}" stroke-width=".8" fill="none"/>`);
+  if (id === 'cfo') s.push(`<path d="M29,24 L33.5,29 L38,24Z" fill="${c.inner}" stroke="${OUT}" stroke-width=".6"/><path d="M33.5,29 V53" stroke="${OUT}" stroke-width=".7"/>
+    <path d="M25.5,33 H40.5 M25,40 H41 M24.8,47 H41" stroke="${c.topHi}" stroke-width=".9"/>`);
+  if (id === 'alice' || id === 'jessica') s.push(`<path d="M30,24 L33.5,37 L37,24Z" fill="${c.inner}"/><path d="M29.5,24.5 L33,36 M37.5,24.5 L34,36" stroke="${c.topHi}" stroke-width="1.1"/><path d="M25,45 Q33,46.5 41,45" stroke="${OUT}" stroke-width=".8" fill="none"/>`);
 
   // head
   s.push(`<rect x="31" y="18" width="4.4" height="7" fill="${c.skin}" stroke="${OUT}" stroke-width="1"/>`);
@@ -292,6 +295,8 @@ function spriteSVG(id: CharId, p: Pose): string {
   s.push(`<ellipse cx="29.6" cy="14.6" rx="1.2" ry="1.8" fill="${c.skin}" stroke="${OUT}" stroke-width=".8"/>`);
   if (id === 'hensen') s.push(`<path d="M26.6,13 C26,6 31,5.4 34,5.7 C38.2,6 40.6,8.2 39.6,11 C37,9 33,9.2 30.5,10.2 C28.6,11 27.6,12 26.6,13Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.1"/>
     <path d="M29,8.2 C32,6.6 36,6.8 38.6,8.4" stroke="${c.hairHi}" stroke-width=".8" fill="none"/>`);
+  else if (id === 'cfo') s.push(`<path d="M26.6,13.4 C25.8,6.6 30,4.6 34,4.4 C37,3.2 41.4,3.6 41.2,7 C40.6,9 39.2,9.8 37.8,10 C34,9.6 30.4,10.8 26.6,13.4Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.1"/>
+    <path d="M31,6 C34,4.8 37.6,4.4 40,5.6" stroke="${c.hairHi}" stroke-width=".8" fill="none"/><circle cx="29.6" cy="15.2" r=".7" fill="#fff" stroke="${OUT}" stroke-width=".4"/>`);
   else if (id === 'kevin') s.push(`<path d="M26.8,13 C26,6.4 32,5.4 35,5.8 C39,6.4 40.2,9 39.6,11 L35.6,9.4 C32.4,10 29.2,11 26.8,13Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.1"/>`);
   else s.push(`<path d="M26.4,15 C25.4,6 31,5 34,5.2 C39,5.5 41,9 40.2,13 C38.4,10.4 36.4,9.6 34.4,10 C31,10.6 28.4,12.4 26.4,15Z" fill="${c.hair}" stroke="${OUT}" stroke-width="1.1"/>
     <path d="M29.5,7.5 C32,6.4 35,6.4 37.5,7.4" stroke="${c.hairHi}" stroke-width=".8" fill="none"/>`);
@@ -306,12 +311,13 @@ function spriteSVG(id: CharId, p: Pose): string {
   s.push(ex.map(x => (eyes === 'narrow' ? `<path d="M${x - 1.2},11.4 L${x + 1},12.4"` : `<path d="M${x - 1},${browY} h2"`) + ` stroke="${c.hair}" stroke-width=".8"/>`).join(''));
   if (id === 'kevin') s.push(`<circle cx="34.6" cy="13.6" r="1.8" fill="none" stroke="${OUT}" stroke-width=".6"/><circle cx="38.2" cy="13.6" r="1.6" fill="none" stroke="${OUT}" stroke-width=".6"/><path d="M36.4,13.4 h0.2" stroke="${OUT}" stroke-width=".6"/>`);
   s.push(`<path d="M38.8,14.6 l1,2.2 l-1.2,.3" fill="none" stroke="${OUT}" stroke-width=".5" opacity=".7"/>`);
-  if (id === 'alice' || id === 'rachel') s.push(`<ellipse cx="35" cy="16.6" rx="1.2" ry=".6" fill="#ff7a9a" opacity=".55"/>`);
+  if (id === 'alice' || id === 'jessica') s.push(`<ellipse cx="35" cy="16.6" rx="1.2" ry=".6" fill="#ff7a9a" opacity=".55"/>`);
   s.push(m ? `<ellipse cx="36.6" cy="18.4" rx="${0.6 + m * 0.35}" ry="${0.4 + m * 0.5}" fill="#3a0d12"/>` : `<path d="M35.4,18.3 Q36.6,18.9 37.8,18.2" stroke="${OUT}" stroke-width=".6" fill="none" stroke-linecap="round"/>`);
 
   // front arm (and the crossed back arm), Kevin's folder of secrets while running
-  if (arms === 'cross') s.push(limb(back, c.top, 3.6), hand(back));
-  s.push(limb(front, c.top, 3.6), hand(front));
+  if (arms === 'cross') s.push(limb(back, sleeve, 3.6), hand(back));
+  s.push(limb(front, sleeve, 3.6), hand(front));
+  if (id === 'cfo') { const [hx, hy, ex, ey] = front.slice(-4); s.push(`<circle cx="${hx + (ex - hx) * 0.8}" cy="${hy + (ey - hy) * 0.8}" r="1.1" fill="#1a1a20" stroke="#6a7ab0" stroke-width=".4"/>`); } // smartwatch
   if (id === 'kevin' && arms === 'swing') s.push(`<rect x="${front[2] - 1}" y="${front[3] - 6}" width="7" height="9" rx=".6" fill="#e8c26a" stroke="${OUT}" stroke-width="1" transform="rotate(8 ${front[2] + 2} ${front[3] - 2})"/>`);
   s.push('</g></g>');
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${FW}" height="${FH}" viewBox="0 0 64 96">${s.join('')}</svg>`;
