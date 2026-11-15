@@ -278,7 +278,7 @@ export async function betrayal() {
   await crash();
 }
 
-async function crash() {
+export async function crash() {
   const root = $('crash'), c = $<HTMLCanvasElement>('crashChart'), g = c.getContext('2d')!;
   root.hidden = false;
   const dpr = Math.min(devicePixelRatio, 2);
@@ -335,7 +335,7 @@ async function crash() {
 }
 
 // ------------------------------------------------------------ ending
-export function showEnding(seconds: number, stumbles: number, onReplay: () => void) {
+export function showEnding(seconds: number, verdict: string, onReplay: () => void) {
   sfx.defeat();
   $('crash').hidden = true;
   $('crash').classList.remove('negative');
@@ -343,11 +343,11 @@ export function showEnding(seconds: number, stumbles: number, onReplay: () => vo
   const el = $('ending');
   el.hidden = false;
   $<HTMLImageElement>('endPortrait').src = portraitSrc('hensen', 'defeated');
+  $('endVerdict').textContent = verdict;
   $('endStats').innerHTML = `
-    <dt>Final share price</dt><dd class="neg">${formatPrice(FINAL_PRICE)}</dd>
-    <dt>Spies caught</dt><dd>0 of 2</dd>
-    <dt>Times Kevin tripped</dt><dd>${stumbles}</dd>
-    <dt>Leather jackets unlocked</dt><dd>1 (already wearing it)</dd>
+    <dt>GPU architecture leaked</dt><dd class="neg">100%</dd>
+    <dt>CEO IQ</dt><dd>3</dd>
+    <dt>Company valuation</dt><dd class="neg">$0</dd>
     <dt>Disaster duration</dt><dd>${seconds.toFixed(1)}s</dd>`;
   const btn = $<HTMLButtonElement>('replay');
   btn.onclick = () => { sfx.select(); onReplay(); };

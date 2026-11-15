@@ -48,6 +48,8 @@ Missing variants fall back to the base frame (the portrait still bobs while talk
 | hensen | `defeated` | ending card | tears, slumped shoulders, wobbly mouth |
 | kevin | `nervous` | caught at desk | forced smile, sweat, clutching a folder to his chest |
 | kevin | `panic` | bolts | eyes wide, mouth open, glasses askew |
+| cfo | `hype` | defends the $800M wire | eyes closed in bliss, huge grin, finger guns (procedural SVG until painted) |
+| cfo | `panic` | gets fired | eyes wide, screaming, sweat |
 | rachel | `neutral` | office small talk | polite, slightly tired smile |
 | rachel | `friendly` | warmer follow-up | wink, soft smile |
 | alice | `smile` | pleasant first line | calm, composed, polite closed-mouth smile, hand on lapel |
@@ -64,6 +66,7 @@ Frame order must match `ANIMS` in `src/art.ts`:
 |----|---------------------|-----------------|
 | hensen | 1280×192 (10) | idle ×2 · walk ×4 · talk ×2 · shocked ×2 |
 | kevin | 1152×192 (9) | idle ×2 · run ×4 · stumble ×1 · panic ×2 |
+| cfo | 1280×192 (10) | idle ×2 · walk ×4 · talk ×2 · panic ×2 |
 | alice | 1280×192 (10) | idle ×2 · walk ×4 · talk ×2 · dramatic ×1 · villain ×1 |
 | rachel | 1024×192 (8) | idle ×2 · walk ×4 · talk ×2 |
 
@@ -76,6 +79,8 @@ Idle = a subtle breathing pair; walk and run = contact, pass, contact, pass; tal
 Palette: jacket `#141417` / sheen `#4a4a55`, tee `#25252b`, skin `#e2b48a`.
 
 **Kevin (`kevin`)**: the office spy. Ordinary, slightly suspicious. Slim. Muted blue-gray shirt `#8fa3ba`, slate tie `#46566b`, gray trousers `#3d4452`, employee badge on a lanyard, round glasses, neat brown hair, a manila folder.
+
+**Brad (`cfo`)**: the CFO, an unhinged crypto bro. Innocent, just financially illiterate in a confident way. Green quarter-zip `#2d5a3c`, gold chain `#f5c542`, frosted blond tips `#e6c34a`, dark joggers.
 
 **Alice (`alice`)**: love interest and the true final boss. A Chinese woman in her early thirties, stylized likeness of the owner-supplied reference photo. Luxury-corporate, elegant, mysterious. Polished shoulder-length dark-brown lob `#3a2219` with a side part. Tailored ivory double-breasted blazer `#ece4d6` with gold buttons, black silk blouse buttoned to the collarbone, black trousers, gold drop earrings and a gold watch. Office-appropriate, nothing revealing; her appeal is posture, gaze and poise.
 She never changes outfit; the reveal is only expression, pose and lighting (purple/magenta under-light and rim, deep shadows, arms crossed).

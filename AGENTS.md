@@ -42,6 +42,7 @@ Edit `src/scenes/<id>/lines.ts`. Each line is `{ who, emo, text }`, plus an opti
 |-----|-----|------|
 | `hensen` (left portrait) | `neutral` `smug` `shocked` `determined` `love` `defeated` | `idle` `talk` `shocked` |
 | `kevin` | `nervous` `panic` | `idle` `panic` `stumble` |
+| `cfo` | `hype` `panic` | `idle` `talk` `panic` |
 | `alice` | `smile` `wink` `dramatic` `villain` | `idle` `talk` `dramatic` `villain` |
 | `rachel` | `neutral` `friendly` | `idle` `talk` |
 
