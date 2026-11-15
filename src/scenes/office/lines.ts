@@ -54,7 +54,6 @@ export const JESSICA: Line[] = [
 ];
 
 export const ALL_SEARCHED: Line[] = [
-  { who: 'hensen', emo: 'smug', text: 'Three desks. Zero clues. My detective skills are mid.' },
   { who: 'hensen', emo: 'determined', text: 'Lawyers say I get ONE interrogation. Choose wisely, chat.' },
   { who: 'hensen', emo: 'smug', text: 'EVERYONE. BOARDROOM. NOW.' },
 ];
