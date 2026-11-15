@@ -175,7 +175,7 @@ export async function spyReveal(quote: string) {
   sfx.sting();
   revealAnim.show('alice', 'villain');
   $('btReveal').hidden = false;
-  await say('ALICE used INSIDER TRADING!', 1500);
+  await say('ALICE used "LEAK GPUS TO CHINA"!', 1500);
   $('btText').textContent = quote;
   revealAnim.talk(true);
   await wait(2200);
