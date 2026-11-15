@@ -1,12 +1,29 @@
 // Every word said or shown in the office. Edit freely; `npm run build` catches typos in who/emo.
 import type { Line } from '../../ui';
 
-export const BRIEFING: Line[] = [
-  { who: 'hensen', emo: 'shocked', pose: 'shocked', text: 'Chat, we have a massive problem.' },
-  { who: 'hensen', emo: 'neutral', text: 'Someone is stealing my proprietary GPU technology.' },
-  { who: 'hensen', emo: 'defeated', text: 'My competitors are literally stealing my aura.' },
-  { who: 'hensen', emo: 'smug', text: 'There are three impostors in this office. Find them.' },
-];
+export const PHONE = {
+  title: 'Phone', open: 'P', openLabel: 'Open phone (P)', close: 'Close · P', back: 'Home',
+  company: 'Njidion', stock: 'NJDN · Simulated', chart: 'Njidion share price history',
+  from: 'Office of the President',
+  subject: 'RE: RE: URGENT / national security? / pls open plzplz',
+  preview: 'bestie, your office has spies tryna steal confidential chip designs.',
+  notification: 'MAIL · NOW', unread: '1 new message',
+  apps: ['Messages', 'Camera', 'Maps', 'Settings'],
+  read: 'Open email →', investigate: 'Investigate',
+  email: `FROM: Office of the President
+SUBJECT: RE: RE: URGENT / national security? / pls open plzplz
+
+bestie,
+
+your office has spies tryna steal confidential chip designs. investigate quietly.
+
+(your company is lowk carrying the economy so lock in.)
+
+regards,
+president
+
+Sent from my RTX 6070`,
+};
 
 /** A: Kevin (CTO), B: Brad (CFO), C: Alice (the spy). */
 export const DESKS: Record<'A' | 'B' | 'C', Line[]> = {
@@ -67,7 +84,7 @@ export const ALICE_MONITOR = 'OPERATION STEAL BLACKWELL';
 export const DESK_LABEL = { A: "Search Kevin's desk (CTO)", B: "Search Brad's desk (CFO)", C: "Search Alice's desk (Assistant)" };
 
 export const OBJECTIVE = {
-  start: 'FIND THE SPY. PROTECT THE GPUs. SAVE THE COMPANY.',
+  start: 'Someone is leaking secrets. Inspect the desks.',
   progress: (n: number) => `Search the suspects' desks (${n}/3)`,
   boardroom: 'Go to the BOARDROOM (door on the back wall)',
 };

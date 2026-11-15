@@ -6,9 +6,10 @@ import { setupBattle } from '../../battle';
 import { above, game, player, sheets, talk } from '../../game';
 import type { Box, P2 } from '../../logic';
 import { M, type Room, type Scene, type Thing } from '../../scene';
-import { hearts, setObjective, toast, wait } from '../../ui';
+import { hearts, setObjective, wait } from '../../ui';
 import type { Actor } from '../../world';
 import * as L from './lines';
+import { phone } from './phone';
 
 const BOUNDS: Box = { minX: -12, maxX: 12, minZ: -8, maxZ: 8 };
 const DOOR: P2 = { x: 9, z: -8 };
@@ -22,11 +23,14 @@ let briefed = false, searched = 0;
 // ------------------------------------------------------------ story beats
 async function briefing() {
   game.busy = true;
-  await wait(400);
-  await talk(L.BRIEFING);
+  player.set(-8.6, -6.25);
+  player.root.scale.y = 0.72;
+  player.lift = 0.15;
+  if (!await phone.intro()) return;
+  player.root.scale.y = 1;
+  player.lift = 0;
+  player.set(-8.6, -3.9);
   setObjective(L.OBJECTIVE.start);
-  toast(L.TOAST.mission, 'info', 3500);
-  sfx.select();
   game.busy = false;
 }
 
@@ -193,6 +197,9 @@ export default {
   }],
 
   reset() {
+    phone.reset();
+    player.root.scale.y = 1;
+    player.lift = 0;
     briefed = false;
     searched = 0;
     setObjective('');
