@@ -57,7 +57,7 @@ async function interrogate(who: L.Suspect) {
   $('hud').hidden = true;
   await startDuel(who, B.name, B.level);
   await battleSay(B.appear, 900);
-  if (who !== 'alice') await chooseAlice(); // wrong suspect: Hensen's turn is the dodging buttons, love wins
+  await chooseAlice(); // Hensen's turn: the escaping buttons, only Alice can be picked
   for (const m of B.moves) await attack(m.by, m.text, m.dmg, m.fx);
   await faint(B.faint);
   if (who === 'alice') {
