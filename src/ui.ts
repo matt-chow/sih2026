@@ -226,12 +226,19 @@ function drawStock() {
 
 export const stock = {
   get price() { return price; },
+  get history(): readonly number[] { return history; },
+  tick() {
+    price += 0.15 + Math.random() * 0.5;
+    history.push(price);
+    if (history.length > 60) history.shift();
+    drawStock();
+  },
   reset() {
-    price = OPEN_PRICE;
+    price = OPEN_PRICE * 1.024;
     history.length = 0;
     // a little pre-scandal noise so the sparkline has shape
-    for (let i = 0; i < 24; i++) history.push(OPEN_PRICE - 6 + Math.sin(i * 1.3) * 4 + i * 0.4);
-    history.push(OPEN_PRICE);
+    for (let i = 0; i < 24; i++) history.push(OPEN_PRICE - 12 + i * 1.5 + Math.sin(i * 1.3) * 2);
+    history.push(price);
     $('stock').hidden = true;
   },
   show() { $('stock').hidden = false; drawStock(); },

@@ -9,7 +9,7 @@ export function initAudio() {
   if (!ctx) {
     ctx = new AudioContext();
     master = ctx.createGain();
-    master.gain.value = 0.45;
+    master.gain.value = muted ? 0 : 0.45;
     master.connect(ctx.destination);
   }
   void ctx.resume();
@@ -54,6 +54,12 @@ const arp = (notes: number[], step: number, type: OscillatorType = 'square', vol
   notes.forEach((n, i) => tone(n, len, type, vol, undefined, i * step));
 
 export const sfx = {
+  office: () => {
+    for (let i = 0; i < 8; i++) noise(0.025, 0.025, 2200, i * 0.09);
+    noise(0.7, 0.035, 480, 0.12, 2);
+    tone(140, 0.55, 'triangle', 0.015, 180, 0.12);
+  },
+  notification: () => arp([784, 1175], 0.12, 'sine', 0.12, 0.45),
   blip: () => tone(880 + Math.random() * 80, 0.03, 'square', 0.04),
   select: () => arp([660, 990], 0.06, 'square', 0.1, 0.1),
   search: () => { noise(0.25, 0.25, 2500); noise(0.2, 0.2, 1800, 0.15); },
