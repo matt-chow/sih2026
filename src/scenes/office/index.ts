@@ -1,21 +1,22 @@
-// The office: CEO briefing, search the three suspects' desks, then ONE interrogation (Q) decides the ending.
+// The office: CEO briefing, then search the three suspects' desks. The interrogation is in ../boardroom.
 import * as THREE from 'three';
 import logo from '../../art/njidion_logo.png';
 import { sfx } from '../../audio';
-import { attack, battlePop, battleSay, crash, faint, setupBattle, showEnding, spyReveal, startDuel } from '../../battle';
+import { setupBattle } from '../../battle';
 import { above, game, player, sheets, talk } from '../../game';
 import type { Box, P2 } from '../../logic';
 import { M, type Room, type Scene, type Thing } from '../../scene';
-import { $, floatText, hearts, setObjective, stock, toast, wait } from '../../ui';
+import { hearts, setObjective, toast, wait } from '../../ui';
 import type { Actor } from '../../world';
 import * as L from './lines';
 
 const BOUNDS: Box = { minX: -12, maxX: 12, minZ: -8, maxZ: 8 };
 const DOOR: P2 = { x: 9, z: -8 };
+const BOARD_DOOR: P2 = { x: -1, z: -8 };
 const DESK_X = { A: -3.6, B: 0, C: 3.6 };
 
 let jessica: Actor;
-const crew = {} as Record<L.Suspect, Actor>;
+const crew = {} as Record<'kevin' | 'cfo' | 'alice', Actor>;
 let briefed = false, searched = 0;
 
 // ------------------------------------------------------------ story beats
@@ -40,46 +41,13 @@ async function search(id: keyof typeof L.DESKS) {
   if (searched < 3) return;
   await talk(L.ALL_SEARCHED);
   game.go('INTERROGATION');
-  setObjective(L.OBJECTIVE.interrogate);
-  floatText(L.FLOAT.impostor, ...above(crew.cfo.pos, 3), 'big');
-  toast(L.TOAST.oneShot, 'info', 4000);
+  setObjective(L.OBJECTIVE.boardroom);
   sfx.alert();
-}
-
-async function interrogate(who: L.Suspect) {
-  game.go('REVEAL');
-  const B = L.BATTLE[who];
-  $('hud').hidden = true;
-  await startDuel(who, B.name, B.level);
-  await battleSay(B.appear, 900);
-  for (const m of B.moves) await attack(m.by, m.text, m.dmg, m.fx);
-  await faint(B.faint);
-  if (who === 'alice') {
-    sfx.achievement();
-    battlePop(L.FLOAT.win);
-    await battleSay(L.BATTLE_WIN, 1200);
-    $('battle').hidden = true;
-    $('hud').hidden = false;
-    crew.alice.root.visible = false;
-    floatText(L.FLOAT.arrested, ...above(crew.alice.pos), 'warn');
-    stock.show();
-    toast(L.TOAST.saved, 'achievement', 2600);
-    await stock.animate(1420, 1600);
-    await wait(900);
-  } else {
-    crew[who].root.visible = false;
-    await spyReveal(L.SPY_QUOTE);
-    crew.alice.root.visible = false;
-    sfx.stockDown();
-    await crash();
-  }
-  game.go('ENDING');
-  showEnding(game.elapsed, L.VERDICT[who], who === 'alice', () => game.restart());
 }
 
 // ------------------------------------------------------------ geometry
 function build(room: Room) {
-  room.shell(BOUNDS, [{ wall: 'back', at: DOOR.x }]);
+  room.shell(BOUNDS, [{ wall: 'back', at: DOOR.x }, { wall: 'back', at: BOARD_DOOR.x }]);
   room.box(M.carpet, 11.6, 0.02, 6.2, 0, 0, -0.4);
   room.box(M.rug, 4.4, 0.02, 3.2, -9.2, 0, 4.6);
   // windows on the left wall
@@ -88,8 +56,13 @@ function build(room: Room) {
     room.box(M.glass, 0.06, 1.5, 3.0, -11.95, 0.95, z);
     room.box(M.trim, 0.08, 1.5, 0.06, -11.93, 0.95, z);
   }
-  // hallway door leaf and exit sign
+  // hallway door leaf, exit sign, boardroom sign
   room.box(M.black, 1.85, 2.2, 0.08, DOOR.x, 0, -8.05);
+  room.sign(1.6, 0.4, g => {
+    g.fillStyle = '#d9443a'; g.fillRect(0, 0, 512, 128);
+    g.fillStyle = '#fff'; g.font = 'bold 72px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(L.BOARDROOM_SIGN, 256, 68);
+  }, BOARD_DOOR.x, 2.75, -7.97);
   room.sign(1.2, 0.4, g => {
     g.fillStyle = '#76b900'; g.fillRect(0, 0, 256, 86);
     g.fillStyle = '#0b0d0f'; g.font = 'bold 56px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
@@ -187,7 +160,7 @@ function build(room: Room) {
   crew.alice = room.actor('alice', DESK_X.C + 1.5, 1.4);
   jessica = room.actor('jessica', 10.2, -2.4);
   jessica.face(-1);
-  setupBattle(sheets); // resetBattle() needs it even though the battle screen is unused
+  setupBattle(sheets);
 }
 
 const desk = (id: keyof typeof L.DESKS): Thing => ({
@@ -198,22 +171,12 @@ const desk = (id: keyof typeof L.DESKS): Thing => ({
   use: () => search(id),
 });
 
-// after the desks: E chats for free, Q is the one interrogation
-const suspect = (who: L.Suspect): Thing => ({
-  get at() { return crew[who].pos; },
-  label: L.LABEL.chat[who],
-  lines: L.CHAT[who],
-  when: () => game.state === 'INTERROGATION',
-  alt: { label: L.LABEL.interrogate, use: () => interrogate(who) },
-});
-
 export default {
   id: 'office',
   bounds: BOUNDS,
   build,
   things: [
     desk('A'), desk('B'), desk('C'),
-    suspect('kevin'), suspect('cfo'), suspect('alice'),
     { get at() { return jessica.pos; }, label: 'Talk to Jessica', lines: L.JESSICA, when: () => game.state === 'EXPLORATION' },
     { get at() { return crew.cfo.pos; }, label: 'Talk to Brad', lines: L.BRAD, when: () => game.state === 'EXPLORATION' && briefed },
   ],
@@ -222,17 +185,24 @@ export default {
     to: 'hallway',
     at: { x: -4.4, z: 0 },
     locked: () => game.state !== 'EXPLORATION' && L.DOOR_LOCKED,
+  }, {
+    area: { minX: BOARD_DOOR.x - 0.8, maxX: BOARD_DOOR.x + 0.8, minZ: -8, maxZ: -7.3 },
+    to: 'boardroom',
+    at: { x: -3.6, z: 2 },
+    locked: () => game.state === 'EXPLORATION' && L.BOARDROOM_LOCKED,
   }],
 
   reset() {
     briefed = false;
     searched = 0;
     setObjective('');
-    for (const a of Object.values(crew)) a.root.visible = true;
   },
 
   update() {
-    crew.kevin.lift = Math.abs(Math.sin(performance.now() / 160)) * 0.06; // nervous gamer bounce
+    // the suspects head to the boardroom once the desks are done
+    const atDesks = game.state === 'START' || game.state === 'EXPLORATION';
+    for (const a of Object.values(crew)) a.root.visible = atDesks;
+    crew.kevin.lift = atDesks ? Math.abs(Math.sin(performance.now() / 160)) * 0.06 : 0; // nervous gamer bounce
     M.led.color.setHSL(0.25, 1, 0.45 + 0.15 * Math.sin(performance.now() / 1000 * 9));
     if (game.state === 'EXPLORATION' && !briefed && !game.busy) { briefed = true; void briefing(); }
   },
