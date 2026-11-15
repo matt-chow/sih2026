@@ -32,12 +32,8 @@ export const DESKS: Record<'A' | 'B' | 'C', Line[]> = {
     { who: 'kevin', emo: 'nervous', text: "Senator, I'm Singaporean." },
   ],
   B: [
-    { who: 'hensen', emo: 'shocked', pose: 'shocked', text: 'Wire transfer: $800,000,000 to "Definitely Not A Shell Co., Shenzhen".' },
-    { who: 'hensen', emo: 'neutral', text: 'Open on his screen: GPU_EXPORT_CONTROL_BYPASS.xlsx' },
-    { who: 'hensen', emo: 'shocked', pose: 'shocked', text: 'Why did you transfer $800 million to China?' },
+    { who: 'hensen', emo: 'shocked', pose: 'shocked', text: 'Why did you send $800M to China?' },
     { who: 'cfo', emo: 'hype', text: "Portfolio diversification, king. We're bullish on the Chinese market." },
-    { who: 'cfo', emo: 'hype', text: 'Rest of payroll is in $DOGEGPU. Up 4% today. Generational wealth.' },
-    { who: 'hensen', emo: 'smug', text: 'Based. Financial literacy.' },
   ],
   C: [
     { who: 'hensen', emo: 'love', text: "Alice, what's all this?" },

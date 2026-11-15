@@ -342,6 +342,17 @@ export async function chooseAlice() {
   $('btHensen').classList.remove('hop');
 }
 
+/** Kevin's and Brad's duels: one button, and it doesn't run away. */
+export async function chooseFire() {
+  const b = $<HTMLButtonElement>('fire');
+  b.hidden = false;
+  void say('HENSEN! WHAT WILL YOU DO?', 0);
+  b.focus({ preventScroll: true });
+  await new Promise(res => b.addEventListener('click', res, { once: true }));
+  sfx.select();
+  b.hidden = true;
+}
+
 export async function crash() {
   const root = $('crash'), c = $<HTMLCanvasElement>('crashChart'), g = c.getContext('2d')!;
   root.hidden = false;

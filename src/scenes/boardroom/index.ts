@@ -1,7 +1,7 @@
 // The boardroom: the suspects line up, E chats, Q is the ONE interrogation (a Pokémon-style duel). Every path ends with Alice's betrayal.
 import logo from '../../art/njidion_logo.png';
 import { sfx } from '../../audio';
-import { attack, battleSay, chooseAlice, crash, faint, showEnding, spyReveal, startDuel } from '../../battle';
+import { attack, battleSay, chooseAlice, chooseFire, crash, faint, showEnding, spyReveal, startDuel } from '../../battle';
 import { above, game } from '../../game';
 import type { Box, P2 } from '../../logic';
 import { M, type Room, type Scene, type Thing } from '../../scene';
@@ -38,7 +38,7 @@ async function interrogate(who: L.Suspect) {
     for (const m of B.moves) await attack(m.by, m.text, m.dmg, m.fx);
     await chooseAlice();
   } else {
-    await chooseAlice();
+    await chooseFire();
     for (const m of B.moves) await attack(m.by, m.text, m.dmg, m.fx);
     if (B.faint) await faint(B.faint);
     crew[who].root.visible = false;

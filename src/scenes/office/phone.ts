@@ -97,6 +97,11 @@ el('notification').onclick = () => {
 el('back').onclick = home;
 el('close').onclick = () => void close();
 el('investigate').onclick = () => void close();
+// a click on the backdrop lands on the dialog itself, outside its box
+dialog.addEventListener('click', e => {
+  const r = dialog.getBoundingClientRect();
+  if (e.target === dialog && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) void close();
+});
 dialog.addEventListener('cancel', e => { e.preventDefault(); if (!opening) void close(); });
 addEventListener('keydown', e => {
   if (e.code === 'KeyM') return; // the existing mute binding remains available

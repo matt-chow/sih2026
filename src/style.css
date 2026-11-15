@@ -214,6 +214,9 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
   border: 4px solid var(--retro-ink); border-radius: 10px; box-shadow: 0 5px 0 var(--retro-ink); will-change: transform;
   display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 10px; white-space: nowrap;
 }
+.ch.fire { position: static; margin-left: auto; width: min(260px, 30vw); height: 60px; font-size: clamp(13px, 1.3vw, 18px); background: var(--danger); color: #fff; border-color: #8a0f1f; box-shadow: 0 5px 0 #8a0f1f; cursor: pointer; }
+.ch.fire[hidden] { display: none; }
+.ch.fire:hover { background: #ff4a60; }
 .ch:focus-visible { outline: 4px solid #2f6bff; outline-offset: 4px; }
 .ch.njidion { background: var(--ink); color: var(--green); border-color: var(--green); box-shadow: 0 5px 0 #2f4a00; }
 .ch.family { background: #ffe8c4; color: #6b3b10; border-color: #b8742d; box-shadow: 0 5px 0 #b8742d; }
