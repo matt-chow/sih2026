@@ -154,6 +154,8 @@ body:not([data-state='EXPLORATION']) #hint { opacity: 0.4; }
     radial-gradient(ellipse at 50% 120%, #ffd0e0 0 30%, transparent 60%),
     linear-gradient(#fbd3e1 0%, #fdeef2 55%, #e9f6d8 55.2%, #cfe9b0 100%);
 }
+/* brand watermark behind the duel */
+#battle::before { content: ''; position: absolute; inset: 6% 25% 40%; background: url('./art/njidion_logo.png') center / contain no-repeat; opacity: 0.45; mix-blend-mode: screen; pointer-events: none; }
 #battle.evil {
   background:
     radial-gradient(ellipse at 70% 30%, rgba(214, 60, 255, 0.28), transparent 50%),

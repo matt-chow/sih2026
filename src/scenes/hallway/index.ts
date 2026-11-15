@@ -36,6 +36,11 @@ export default {
       g.fillStyle = '#6a6f78'; g.font = '32px system-ui,sans-serif'; g.fillText('(x12)', 256, 500);
     }, -4.4, 1.6, -1.97);
     room.sign(1.8, 1.2, logo, 4.6, 1.7, -1.97);
+    // more brand: elevator doors, vending machine screen, floor, above the door frame
+    room.sign(1.2, 0.8, logo, -2, 1.3, -1.92);
+    room.sign(0.72, 0.48, logo, 1.85, 1.6, -1.13);
+    room.sign(2.4, 1.6, logo, 0.6, 0.025, 0.2).rotation.x = -Math.PI / 2;
+    for (const x of [-5.3, 0, 3]) room.sign(0.6, 0.4, logo, x, 2.75, -1.97);
     room.plant(5.4, -1.4);
   },
 
